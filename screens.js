@@ -211,13 +211,25 @@ function ResultsScreen({ results, isChild, onSave, onBack }) {
       <p style={{ color:isChild?"#8b5cf6":"rgba(255,255,255,0.5)", fontStyle:"italic", marginBottom:24, textAlign:"center" }}>{results.encouragement}</p>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, width:"100%", maxWidth:380, marginBottom:20 }}>
-        <MetricBadge label="Precisión"     value={`${results.accuracy}%`}  color={results.accuracy>70?"#22c55e":results.accuracy>50?"#f59e0b":"#ef4444"} isChild={isChild}/>
-        <MetricBadge label="Puntuación"    value={results.score}           color={fg}    isChild={isChild}/>
-        <MetricBadge label="TR Promedio"   value={results.avgRT>0?`${results.avgRT}ms`:"—"} color="#60a5fa" isChild={isChild}/>
-        <MetricBadge label="Dificultad Máx." value={`Niv. ${results.maxDifficulty}`} color={isChild?"#ec4899":"#fff"} isChild={isChild}/>
+        <MetricBadge label="Precisión"       value={`${results.accuracy}%`} color={results.accuracy>70?"#22c55e":results.accuracy>50?"#f59e0b":"#ef4444"} isChild={isChild}/>
+        <MetricBadge label="Puntuación"      value={results.score}          color={fg}       isChild={isChild}/>
+        <MetricBadge label="Tiempo de resp." value={results.avgRT>0?`${results.avgRT}ms`:"—"} color="#60a5fa" isChild={isChild}/>
+        <MetricBadge label="Dificultad Máx." value={`Niv. ${results.maxDifficulty}`}          color={isChild?"#ec4899":"#fff"} isChild={isChild}/>
       </div>
 
-      {!isChild && (
+      {isChild ? (
+        <div className="glass-light" style={{ padding:"16px 18px", width:"100%", maxWidth:380, marginBottom:20, border:"2px solid rgba(139,92,246,0.2)" }}>
+          <p style={{ fontSize:12, fontWeight:700, color:"#7c3aed", textTransform:"uppercase", letterSpacing:".06em", marginBottom:8 }}>📊 ¿Cómo te fue?</p>
+          <p style={{ fontSize:14, color:"#4c1d95", lineHeight:1.65 }}>
+            {results.accuracy > 80
+              ? `¡Excelente! Acertaste el ${results.accuracy}% de los intentos. ¡Muy buena atención y velocidad!`
+              : results.accuracy > 55
+              ? `¡Buen trabajo! Acertaste el ${results.accuracy}% de los intentos. Sigue practicando.`
+              : `Acertaste el ${results.accuracy}% de los intentos. ¡Con más práctica lo harás mejor!`}
+            {results.avgRT > 0 && ` Tu tiempo de respuesta promedio fue ${results.avgRT} milisegundos.`}
+          </p>
+        </div>
+      ) : (
         <div className="glass-dark" style={{ padding:"16px 18px", width:"100%", maxWidth:380, marginBottom:20 }}>
           <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:8 }}>Análisis clínico</p>
           <p style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.6 }}>{analysis}</p>
