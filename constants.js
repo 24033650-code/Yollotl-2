@@ -21,15 +21,19 @@ const STROOP_WORDS = [
   { name: "Amarillo", namedColor: "#eab308" },
   { name: "Morado",   namedColor: "#a855f7" },
 ];
+// IMPORTANTE: `answer` = nombre del COLOR DE LA TINTA (ink), NO de la palabra
+// Ejemplo: word="ROJO" pintada con ink azul (#3b82f6) → answer="Azul"
 const STROOP_ITEMS = [
-  { word: "ROJO",      ink: "#3b82f6", answer: "Rojo"     },
-  { word: "AZUL",      ink: "#22c55e", answer: "Azul"     },
-  { word: "VERDE",     ink: "#ef4444", answer: "Verde"    },
-  { word: "AMARILLO",  ink: "#a855f7", answer: "Amarillo" },
-  { word: "MORADO",    ink: "#eab308", answer: "Morado"   },
-  { word: "ROJO",      ink: "#a855f7", answer: "Rojo"     },
-  { word: "AZUL",      ink: "#ef4444", answer: "Azul"     },
-  { word: "VERDE",     ink: "#eab308", answer: "Verde"    },
+  { word: "ROJO",     ink: "#3b82f6", answer: "Azul"     }, // tinta azul
+  { word: "AZUL",     ink: "#22c55e", answer: "Verde"    }, // tinta verde
+  { word: "VERDE",    ink: "#ef4444", answer: "Rojo"     }, // tinta roja
+  { word: "AMARILLO", ink: "#a855f7", answer: "Morado"   }, // tinta morada
+  { word: "MORADO",   ink: "#eab308", answer: "Amarillo" }, // tinta amarilla
+  { word: "ROJO",     ink: "#a855f7", answer: "Morado"   }, // tinta morada
+  { word: "AZUL",     ink: "#ef4444", answer: "Rojo"     }, // tinta roja
+  { word: "VERDE",    ink: "#eab308", answer: "Amarillo" }, // tinta amarilla
+  { word: "AMARILLO", ink: "#3b82f6", answer: "Azul"     }, // tinta azul
+  { word: "MORADO",   ink: "#22c55e", answer: "Verde"    }, // tinta verde
 ];
 
 // ── Figuras y animales ──
