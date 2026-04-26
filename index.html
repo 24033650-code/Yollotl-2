@@ -2,1597 +2,236 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Yóllotl — Evaluación Cognitiva</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Fredoka+One&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'DM Sans', sans-serif; background: #0a0e1a; color: #fff; min-height: 100vh; overflow-x: hidden; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'DM Sans', sans-serif;
+  background:#0a0e1a;
+  color:#fff;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar        { width:6px; }
+::-webkit-scrollbar-track  { background:transparent; }
+::-webkit-scrollbar-thumb  { background:rgba(255,255,255,0.15); border-radius:3px; }
 
-  /* ANIMACIONES */
-  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
-  @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:.5} }
-  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-  @keyframes glow   { 0%,100%{box-shadow:0 0 10px rgba(234,179,8,0.3)} 50%{box-shadow:0 0 30px rgba(234,179,8,0.7)} }
-  @keyframes pop    { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
-  @keyframes starFall { from{top:-8%} }
-  @keyframes float  { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-8px)} }
+/* ══════════════════════════════════════════════
+   ANIMACIONES
+══════════════════════════════════════════════ */
+@keyframes fadeIn  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shake   { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.5} }
+@keyframes bounce  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes pop     { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+@keyframes float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes glow    { 0%,100%{box-shadow:0 0 10px rgba(234,179,8,.3)} 50%{box-shadow:0 0 30px rgba(234,179,8,.7)} }
 
-  .animate-fadeIn  { animation: fadeIn .35s ease both; }
-  .animate-shake   { animation: shake .4s ease-in-out; }
-  .animate-pulse   { animation: pulse 1.5s infinite; }
-  .animate-bounce  { animation: bounce 1s infinite; }
-  .animate-pop     { animation: pop .3s ease; }
-  .animate-float   { animation: float 3s ease-in-out infinite; }
-  .animate-glow    { animation: glow 2s ease-in-out infinite; }
+.animate-fadeIn { animation:fadeIn  .35s ease both; }
+.animate-shake  { animation:shake   .4s  ease-in-out; }
+.animate-pulse  { animation:pulse   1.5s infinite; }
+.animate-bounce { animation:bounce  1s   infinite; }
+.animate-pop    { animation:pop     .3s  ease; }
+.animate-float  { animation:float   3s   ease-in-out infinite; }
+.animate-glow   { animation:glow    2s   ease-in-out infinite; }
 
-  /* GLASS */
-  .glass-dark  { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
-  .glass-light { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.85); border-radius: 20px; box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
+/* ══════════════════════════════════════════════
+   GLASSMORPHISM
+══════════════════════════════════════════════ */
+.glass-dark {
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;
+}
+.glass-light {
+  background:rgba(255,255,255,.7);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:20px;
+  box-shadow:0 8px 32px rgba(139,92,246,.15);
+}
 
-  /* BOTONES */
-  .btn { display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600; border-radius:14px; transition:all .2s ease; user-select:none; outline:none; }
-  .btn:active { transform:scale(0.94); }
-  .btn:disabled { opacity:.45; cursor:not-allowed; transform:none; }
-  .btn-primary-adult  { background:linear-gradient(135deg,#d97706,#b45309); color:#000; box-shadow:0 4px 20px rgba(217,119,6,0.35); }
-  .btn-primary-adult:hover:not(:disabled)  { box-shadow:0 6px 28px rgba(217,119,6,0.55); transform:translateY(-1px); }
-  .btn-secondary-adult { background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.18); }
-  .btn-secondary-adult:hover:not(:disabled) { background:rgba(255,255,255,0.15); }
-  .btn-danger-adult    { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); }
-  .btn-ghost-adult     { background:transparent; color:rgba(255,255,255,0.5); }
-  .btn-ghost-adult:hover:not(:disabled) { color:#fff; background:rgba(255,255,255,0.08); }
-  .btn-primary-child   { background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; box-shadow:0 4px 20px rgba(139,92,246,0.4); }
-  .btn-primary-child:hover:not(:disabled) { box-shadow:0 6px 28px rgba(236,72,153,0.5); transform:translateY(-2px) scale(1.03); }
-  .btn-secondary-child { background:rgba(255,255,255,0.8); color:#7c3aed; border:2px solid rgba(139,92,246,0.4); }
-  .btn-secondary-child:hover:not(:disabled) { background:#fff; }
-  .btn-ghost-child     { background:transparent; color:#7c3aed; }
-  .btn-ghost-child:hover:not(:disabled)     { background:rgba(139,92,246,0.1); }
-  .btn-sm  { padding:7px 16px; font-size:13px; }
-  .btn-md  { padding:11px 22px; font-size:15px; }
-  .btn-lg  { padding:15px 32px; font-size:17px; }
-  .btn-xl  { padding:18px 42px; font-size:20px; border-radius:18px; }
+/* ══════════════════════════════════════════════
+   BOTONES
+══════════════════════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  border:none; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-weight:600;
+  border-radius:14px; transition:all .2s ease;
+  user-select:none; outline:none;
+}
+.btn:active   { transform:scale(.94); }
+.btn:disabled { opacity:.45; cursor:not-allowed; transform:none !important; }
 
-  /* LAYOUT */
-  .app-container { max-width: 520px; margin: 0 auto; min-height: 100vh; position: relative; }
-  .screen { animation: fadeIn .3s ease both; padding-bottom: 80px; }
-  .header-bar { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:12px 18px; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); }
-  .header-adult { background:rgba(10,14,26,0.85); border-bottom:1px solid rgba(255,255,255,0.08); }
-  .header-child  { background:rgba(255,255,255,0.75); border-bottom:1px solid rgba(139,92,246,0.2); }
-  .footer-bar { position:fixed; bottom:0; left:0; right:0; text-align:center; padding:8px 16px; font-size:11px; line-height:1.4; z-index:99; }
-  .footer-adult { background:rgba(10,14,26,0.9); color:rgba(255,255,255,0.2); }
-  .footer-child { background:rgba(255,255,255,0.85); color:rgba(124,58,237,0.5); }
+/* Adulto */
+.btn-primary-adult   { background:linear-gradient(135deg,#d97706,#b45309); color:#000; box-shadow:0 4px 20px rgba(217,119,6,.35); }
+.btn-primary-adult:hover:not(:disabled)   { box-shadow:0 6px 28px rgba(217,119,6,.55); transform:translateY(-1px); }
+.btn-secondary-adult { background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18); }
+.btn-secondary-adult:hover:not(:disabled) { background:rgba(255,255,255,.15); }
+.btn-danger-adult    { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+.btn-ghost-adult     { background:transparent; color:rgba(255,255,255,.5); }
+.btn-ghost-adult:hover:not(:disabled)     { color:#fff; background:rgba(255,255,255,.08); }
 
-  /* METRIC BADGE */
-  .metric-badge { display:flex; flex-direction:column; align-items:center; padding:10px 14px; border-radius:14px; }
-  .metric-badge-adult { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); }
-  .metric-badge-child { background:rgba(255,255,255,0.65); border:1px solid rgba(139,92,246,0.15); }
-  .metric-val { font-size:22px; font-weight:700; line-height:1; }
-  .metric-lbl { font-size:11px; margin-top:4px; opacity:.55; }
+/* Infantil */
+.btn-primary-child   { background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; box-shadow:0 4px 20px rgba(139,92,246,.4); }
+.btn-primary-child:hover:not(:disabled)   { box-shadow:0 6px 28px rgba(236,72,153,.5); transform:translateY(-2px) scale(1.03); }
+.btn-secondary-child { background:rgba(255,255,255,.8); color:#7c3aed; border:2px solid rgba(139,92,246,.4); }
+.btn-secondary-child:hover:not(:disabled) { background:#fff; }
+.btn-danger-child    { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+.btn-ghost-child     { background:transparent; color:#7c3aed; }
+.btn-ghost-child:hover:not(:disabled)     { background:rgba(139,92,246,.1); }
 
-  /* PROGRESS BAR */
-  .progress-track { width:100%; height:6px; border-radius:99px; overflow:hidden; }
-  .progress-track-adult { background:rgba(255,255,255,0.08); }
-  .progress-track-child { background:rgba(139,92,246,0.15); }
-  .progress-fill { height:100%; border-radius:99px; transition:width .4s ease; }
-  .progress-adult { background:linear-gradient(90deg,#d97706,#fbbf24); }
-  .progress-child { background:linear-gradient(90deg,#8b5cf6,#ec4899); }
+/* Tamaños */
+.btn-sm  { padding:7px 16px;  font-size:13px; }
+.btn-md  { padding:11px 22px; font-size:15px; }
+.btn-lg  { padding:15px 32px; font-size:17px; }
+.btn-xl  { padding:18px 42px; font-size:20px; border-radius:18px; }
 
-  /* FEEDBACK OVERLAY */
-  .feedback-correct { background:rgba(34,197,94,0.15) !important; border-color:rgba(34,197,94,0.4) !important; }
-  .feedback-error   { background:rgba(239,68,68,0.15)  !important; border-color:rgba(239,68,68,0.4)  !important; }
+/* ══════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════ */
+.screen        { animation:fadeIn .3s ease both; padding-bottom:80px; }
+.header-bar    { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:12px 18px; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); }
+.header-adult  { background:rgba(10,14,26,.85); border-bottom:1px solid rgba(255,255,255,.08); }
+.header-child  { background:rgba(255,255,255,.75); border-bottom:1px solid rgba(139,92,246,.2); }
+.footer-bar    { position:fixed; bottom:0; left:0; right:0; text-align:center; padding:8px 16px; font-size:11px; line-height:1.4; z-index:99; }
+.footer-adult  { background:rgba(10,14,26,.9);  color:rgba(255,255,255,.2); }
+.footer-child  { background:rgba(255,255,255,.85); color:rgba(124,58,237,.5); }
 
-  /* CHILD BG */
-  .child-bg { background: linear-gradient(135deg,#f0e6ff 0%,#fce7f3 40%,#e0f2fe 100%); min-height:100vh; }
+/* ══════════════════════════════════════════════
+   MÉTRICAS Y BARRA DE PROGRESO
+══════════════════════════════════════════════ */
+.metric-badge       { display:flex; flex-direction:column; align-items:center; padding:10px 14px; border-radius:14px; }
+.metric-badge-adult { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
+.metric-badge-child { background:rgba(255,255,255,.65); border:1px solid rgba(139,92,246,.15); }
+.metric-val         { font-size:22px; font-weight:700; line-height:1; }
+.metric-lbl         { font-size:11px; margin-top:4px; opacity:.55; }
 
-  /* INPUT */
-  .input-adult { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:12px 16px; color:#fff; font-family:'DM Sans',sans-serif; font-size:15px; outline:none; width:100%; transition:border-color .2s; }
-  .input-adult::placeholder { color:rgba(255,255,255,0.25); }
-  .input-adult:focus { border-color:rgba(217,119,6,0.6); }
-  .input-child { background:rgba(255,255,255,0.8); border:2px solid rgba(139,92,246,0.3); border-radius:14px; padding:12px 16px; color:#4c1d95; font-family:'DM Sans',sans-serif; font-size:16px; outline:none; width:100%; transition:border-color .2s; }
-  .input-child::placeholder { color:rgba(139,92,246,0.35); }
-  .input-child:focus { border-color:#8b5cf6; }
+.progress-track       { width:100%; height:6px; border-radius:99px; overflow:hidden; }
+.progress-track-adult { background:rgba(255,255,255,.08); }
+.progress-track-child { background:rgba(139,92,246,.15); }
+.progress-fill        { height:100%; border-radius:99px; transition:width .4s ease; }
+.progress-adult       { background:linear-gradient(90deg,#d97706,#fbbf24); }
+.progress-child       { background:linear-gradient(90deg,#8b5cf6,#ec4899); }
 
-  /* TABLE */
-  .hist-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .hist-table th { text-align:left; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid rgba(255,255,255,0.1); }
-  .hist-table td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,0.04); }
-  .hist-table-child th { border-bottom:1px solid rgba(139,92,246,0.2); color:#7c3aed; }
-  .hist-table-child td { border-bottom:1px solid rgba(139,92,246,0.08); color:#4c1d95; }
+/* ══════════════════════════════════════════════
+   FEEDBACK
+══════════════════════════════════════════════ */
+.feedback-correct { background:rgba(34,197,94,.15)  !important; border-color:rgba(34,197,94,.4) !important; }
+.feedback-error   { background:rgba(239,68,68,.15)  !important; border-color:rgba(239,68,68,.4) !important; }
 
-  /* STAR CATCH GAME */
-  .star-arena { position:relative; width:100%; height:320px; border-radius:20px; overflow:hidden; cursor:none; touch-action:none; }
-  .star-arena-adult { background:linear-gradient(180deg,#0f172a 0%,#1e1b4b 100%); border:1px solid rgba(255,255,255,0.1); }
-  .star-arena-child { background:linear-gradient(180deg,#bfdbfe 0%,#c4b5fd 100%); border:2px solid rgba(139,92,246,0.3); }
-  .star-el { position:absolute; font-size:40px; transform:translate(-50%,-50%); pointer-events:none; transition:none; }
-  .bar-el  { position:absolute; bottom:16px; height:16px; width:90px; border-radius:99px; transform:translateX(-50%); transition:none; pointer-events:none; }
-  .bar-adult { background:linear-gradient(90deg,#d97706,#fbbf24); box-shadow:0 0 20px rgba(217,119,6,0.6); }
-  .bar-child { background:linear-gradient(90deg,#8b5cf6,#ec4899); box-shadow:0 0 20px rgba(236,72,153,0.5); }
+/* ══════════════════════════════════════════════
+   FONDOS TEMÁTICOS
+══════════════════════════════════════════════ */
+.child-bg { background:linear-gradient(135deg,#f0e6ff 0%,#fce7f3 40%,#e0f2fe 100%); min-height:100vh; }
 
-  /* SIMON */
-  .simon-btn { width:110px; height:110px; border-radius:20px; border:none; cursor:pointer; transition:all .1s; font-size:0; }
-  .simon-btn:active { transform:scale(0.9); }
+/* ══════════════════════════════════════════════
+   INPUTS
+══════════════════════════════════════════════ */
+.input-adult {
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+  border-radius:14px; padding:12px 16px; color:#fff;
+  font-family:'DM Sans',sans-serif; font-size:15px; outline:none; width:100%; transition:border-color .2s;
+}
+.input-adult::placeholder { color:rgba(255,255,255,.25); }
+.input-adult:focus        { border-color:rgba(217,119,6,.6); }
 
-  /* SETTINGS PILLS */
-  .pill { padding:7px 16px; border-radius:99px; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; border:none; }
-  .pill-active-adult { background:linear-gradient(135deg,#d97706,#b45309); color:#000; }
-  .pill-inactive-adult { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.5); }
-  .pill-active-adult:hover, .pill-inactive-adult:hover { background:rgba(255,255,255,0.13); color:#fff; }
-  .pill-active-child { background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; }
-  .pill-inactive-child { background:rgba(139,92,246,0.1); color:#7c3aed; }
+.input-child {
+  background:rgba(255,255,255,.8); border:2px solid rgba(139,92,246,.3);
+  border-radius:14px; padding:12px 16px; color:#4c1d95;
+  font-family:'DM Sans',sans-serif; font-size:16px; outline:none; width:100%; transition:border-color .2s;
+}
+.input-child::placeholder { color:rgba(139,92,246,.35); }
+.input-child:focus        { border-color:#8b5cf6; }
 
-  /* PRINT */
-  @media print {
-    body { background:#fff !important; color:#000 !important; }
-    .no-print { display:none !important; }
-    .print-only { display:block !important; }
-    .print-header { display:flex !important; align-items:center; gap:12px; margin-bottom:16px; border-bottom:2px solid #000; padding-bottom:12px; }
-    .glass-dark, .glass-light { background:#fff !important; border:1px solid #ccc !important; backdrop-filter:none !important; }
-    * { color:#000 !important; box-shadow:none !important; }
-    .hist-table th, .hist-table td { border-color:#ccc !important; }
-    .footer-bar, .header-bar { display:none !important; }
-    .app-container { max-width:100%; }
-  }
-  .print-only { display:none; }
+/* ══════════════════════════════════════════════
+   TABLA DE HISTORIAL
+══════════════════════════════════════════════ */
+.hist-table     { width:100%; border-collapse:collapse; font-size:13px; }
+.hist-table th  { text-align:left; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.4); }
+.hist-table td  { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.04); color:rgba(255,255,255,.7); }
+.hist-table-child th { border-bottom:1px solid rgba(139,92,246,.2); color:#7c3aed !important; }
+.hist-table-child td { border-bottom:1px solid rgba(139,92,246,.08); color:#4c1d95; }
 
-  /* TACHISTOSCOPE */
-  .tachy-display { width:180px; height:180px; display:flex; align-items:center; justify-content:center; border-radius:22px; font-size:90px; transition:all .1s; margin:0 auto; border:2px solid rgba(255,255,255,0.12); }
-  .tachy-adult { background:rgba(255,255,255,0.06); }
-  .tachy-child { background:rgba(255,255,255,0.6); }
-  .tachy-flash { background:rgba(255,255,255,0.22) !important; transform:scale(1.08); }
+/* ══════════════════════════════════════════════
+   JUEGO: ATRAPA LA ESTRELLA
+══════════════════════════════════════════════ */
+.star-arena        { position:relative; width:100%; height:320px; border-radius:20px; overflow:hidden; cursor:none; touch-action:none; }
+.star-arena-adult  { background:linear-gradient(180deg,#0f172a 0%,#1e1b4b 100%); border:1px solid rgba(255,255,255,.1); }
+.star-arena-child  { background:linear-gradient(180deg,#bfdbfe 0%,#c4b5fd 100%); border:2px solid rgba(139,92,246,.3); }
+.star-el           { position:absolute; transform:translate(-50%,-50%); pointer-events:none; }
+.bar-el            { position:absolute; height:16px; width:90px; border-radius:99px; transform:translateX(-50%); pointer-events:none; }
+.bar-adult         { background:linear-gradient(90deg,#d97706,#fbbf24); box-shadow:0 0 20px rgba(217,119,6,.6); }
+.bar-child         { background:linear-gradient(90deg,#8b5cf6,#ec4899); box-shadow:0 0 20px rgba(236,72,153,.5); }
 
-  /* SCROLLABLE CONTENT */
-  .scroll-area { overflow-y:auto; max-height:calc(100vh - 160px); padding:0 18px; }
+/* ══════════════════════════════════════════════
+   SETTINGS PILLS
+══════════════════════════════════════════════ */
+.pill               { padding:8px 16px; border-radius:99px; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; border:none; }
+.pill-active-adult  { background:linear-gradient(135deg,#d97706,#b45309); color:#000; }
+.pill-inactive-adult{ background:rgba(255,255,255,.07); color:rgba(255,255,255,.5); }
+.pill-inactive-adult:hover { background:rgba(255,255,255,.13); color:#fff; }
+.pill-active-child  { background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; }
+.pill-inactive-child{ background:rgba(139,92,246,.1); color:#7c3aed; }
+.pill-inactive-child:hover { background:rgba(139,92,246,.2); }
+
+/* ══════════════════════════════════════════════
+   TACHISTOSCOPIO
+══════════════════════════════════════════════ */
+.tachy-display {
+  width:180px; height:180px; display:flex; align-items:center; justify-content:center;
+  border-radius:22px; font-size:90px; transition:all .1s; margin:0 auto;
+  border:2px solid rgba(255,255,255,.12);
+}
+.tachy-adult { background:rgba(255,255,255,.06); }
+.tachy-child { background:rgba(255,255,255,.6); }
+.tachy-flash { background:rgba(255,255,255,.22) !important; transform:scale(1.08); }
+
+/* ══════════════════════════════════════════════
+   IMPRESIÓN — Reporte médico B&N
+══════════════════════════════════════════════ */
+.print-only { display:none; }
+
+@media print {
+  body                       { background:#fff !important; color:#000 !important; }
+  .no-print                  { display:none  !important; }
+  .print-only                { display:block !important; }
+  .print-header              { display:flex  !important; align-items:center; gap:12px; margin-bottom:16px; border-bottom:2px solid #000; padding-bottom:12px; }
+  .glass-dark, .glass-light  { background:#fff !important; border:1px solid #ccc !important; backdrop-filter:none !important; }
+  *                          { color:#000 !important; box-shadow:none !important; }
+  .hist-table th,
+  .hist-table td             { border-color:#ccc !important; }
+  .footer-bar, .header-bar   { display:none !important; }
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
-// ═══════════════════════════════════════════════
-// CONSTANTES
-// ═══════════════════════════════════════════════
-const DISCLAIMER = "Aviso: Esta es una herramienta de apoyo tecnológico orientada al entrenamiento y la medición reactiva. NO sustituye una evaluación neuropsicológica, diagnóstico o tratamiento médico profesional.";
+<!--
+  ORDEN DE CARGA — importante:
+  1. constants.js  → datos, pools, instrucciones, utilidades
+  2. screens.js    → Btn, MetricBadge, ProgressBar + todas las pantallas
+  3. games.js      → los 10 juegos (usan Btn, MetricBadge, constantes)
+  4. app.js        → hooks + App + ReactDOM.render
+-->
+<script type="text/babel" src="constants.js"></script>
+<script type="text/babel" src="screens.js"></script>
+<script type="text/babel" src="games.js"></script>
+<script type="text/babel" src="app.js"></script>
 
-const ENCOURAGEMENTS = [
-  "¡Excelente enfoque!","Tu tiempo de reacción es notable","¡Sigue así!",
-  "¡Concentración impecable!","¡Muy bien ejecutado!","¡Tu mente está afilada hoy!",
-  "¡Respuesta magistral!","¡Eso es precisión!","¡Rendimiento sobresaliente!"
-];
-
-const STROOP_WORDS = [
-  { word:"ROJO",    inkColor:"#ef4444", namedColor:"#ef4444", name:"Rojo"    },
-  { word:"AZUL",    inkColor:"#3b82f6", namedColor:"#3b82f6", name:"Azul"    },
-  { word:"VERDE",   inkColor:"#22c55e", namedColor:"#22c55e", name:"Verde"   },
-  { word:"AMARILLO",inkColor:"#eab308", namedColor:"#eab308", name:"Amarillo"},
-  { word:"MORADO",  inkColor:"#a855f7", namedColor:"#a855f7", name:"Morado"  },
-];
-// Para el Stroop: la tinta siempre es un color distinto al significado
-const STROOP_ITEMS = [
-  { word:"ROJO",     ink:"#3b82f6",  answer:"Rojo"    },
-  { word:"AZUL",     ink:"#22c55e",  answer:"Azul"    },
-  { word:"VERDE",    ink:"#ef4444",  answer:"Verde"   },
-  { word:"AMARILLO", ink:"#a855f7",  answer:"Amarillo"},
-  { word:"MORADO",   ink:"#eab308",  answer:"Morado"  },
-  { word:"ROJO",     ink:"#a855f7",  answer:"Rojo"    },
-  { word:"AZUL",     ink:"#ef4444",  answer:"Azul"    },
-  { word:"VERDE",    ink:"#eab308",  answer:"Verde"   },
-];
-
-const SHAPES = ["◆","●","▲","■","★","⬟","⬡","⬢","⊕","⊗","⊞","⊠"];
-
-const ANIMALS_POOL = [
-  "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐸",
-  "🐷","🐮","🐙","🦋","🐝","🦄","🐬","🦈","🦆","🦅","🦉","🦚",
-  "🦜","🐢","🦎","🐊","🦕","🦖","🐳","🐘","🦒","🦓","🦏","🐃",
-  "🐑","🐐","🦌","🐕","🐈","🐇","🦔","🐿","🦦","🦥","🐓","🦃"
-];
-
-const THINGS_POOL = [
-  "🍎","🍊","🍋","🍇","🍓","🍑","🥝","🍍","🥭","🍒",
-  "⚽","🏀","🎾","🏈","⚾","🎱","🏐","🎯","🎳","🏓",
-  "🚗","🚕","🚙","🚌","🚎","🏎","🚓","🚑","🚒","🚐"
-];
-
-const PUZZLE_SEQ = [
-  { items:["🌱","🌿","🌳","🍂"], answer:["🌱","🌿","🌳","🍂"], label:"¿Cómo crece el árbol? Ordénalos." },
-  { items:["🌑","🌒","🌓","🌕"], answer:["🌑","🌒","🌓","🌕"], label:"¿Cómo cambia la luna? Ordénalos." },
-  { items:["🐣","🐥","🐤","🐓"], answer:["🐣","🐥","🐤","🐓"], label:"¿Cómo crece el pollito? Ordénalos." },
-  { items:["🌧️","🌱","🌸","🌻"], answer:["🌧️","🌱","🌸","🌻"], label:"¿Cómo crece la flor? Ordénalos." },
-];
-
-// ═══════════════════════════════════════════════
-// UTILIDADES
-// ═══════════════════════════════════════════════
-function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
-function avgArr(arr) { return arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0; }
-function generateClinicalAnalysis({ accuracy, avgRT, maxDifficulty, errors }) {
-  const attn = accuracy > 85 ? "Alta" : accuracy > 60 ? "Media" : "Baja";
-  const proc = avgRT > 0 ? (avgRT < 400 ? "Sobresaliente" : avgRT < 700 ? "Normal" : "Por debajo del promedio") : "—";
-  const ctrl = errors < 3 ? "Adecuado" : errors < 7 ? "Moderado" : "Requiere atención";
-  return `Atención: ${attn}. Velocidad de procesamiento: ${proc}${avgRT > 0 ? ` (TR promedio: ${avgRT}ms)` : ""}. Control inhibitorio: ${ctrl} (${errors} errores). Dificultad máxima alcanzada: Nivel ${maxDifficulty}/5.` +
-    (accuracy > 85 && (avgRT === 0 || avgRT < 600) ? " Rendimiento cognitivo dentro de rangos óptimos." :
-     accuracy < 50 ? " Se recomienda evaluación complementaria con especialista." :
-     " Rendimiento dentro de parámetros esperados.");
-}
-
-// ═══════════════════════════════════════════════
-// HOOKS
-// ═══════════════════════════════════════════════
-function useGameEngine() {
-  const [difficulty, setDifficulty] = useState(1);
-  const streak = useRef(0);
-  const errStreak = useRef(0);
-
-  const recordResult = useCallback((correct) => {
-    if (correct) {
-      streak.current++; errStreak.current = 0;
-      if (streak.current >= 3) { setDifficulty(d => Math.min(d + 1, 5)); streak.current = 0; }
-    } else {
-      errStreak.current++; streak.current = 0;
-      if (errStreak.current >= 2) { setDifficulty(d => Math.max(d - 1, 1)); errStreak.current = 0; }
-    }
-  }, []);
-
-  const reset = useCallback(() => { setDifficulty(1); streak.current = 0; errStreak.current = 0; }, []);
-  const getSpeed = useCallback((d) => [2000,1500,1100,800,550][(d ?? difficulty) - 1] ?? 1100, [difficulty]);
-  const encourage = useCallback(() => pick(ENCOURAGEMENTS), []);
-
-  return { difficulty, recordResult, reset, getSpeed, encourage };
-}
-
-function useHistory() {
-  const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("yollotl_v2") || "[]"); }
-    catch { return []; }
-  });
-  const save = useCallback((session) => {
-    setHistory(prev => {
-      const updated = [{ ...session, id: Date.now(), date: new Date().toLocaleString("es-MX") }, ...prev].slice(0, 200);
-      localStorage.setItem("yollotl_v2", JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-  const clear = useCallback(() => { localStorage.removeItem("yollotl_v2"); setHistory([]); }, []);
-  return { history, save, clear };
-}
-
-// ═══════════════════════════════════════════════
-// COMPONENTES BASE
-// ═══════════════════════════════════════════════
-function Btn({ children, onClick, variant = "primary", size = "md", isChild, disabled, className = "", ariaLabel }) {
-  const v = `btn-${variant}-${isChild ? "child" : "adult"}`;
-  return (
-    <button className={`btn btn-${size} ${v} ${className}`} onClick={onClick} disabled={disabled} aria-label={ariaLabel || (typeof children === "string" ? children : undefined)}>
-      {children}
-    </button>
-  );
-}
-
-function MetricBadge({ label, value, color, isChild }) {
-  return (
-    <div className={`metric-badge ${isChild ? "metric-badge-child" : "metric-badge-adult"}`}>
-      <span className="metric-val" style={{ color }}>{value}</span>
-      <span className="metric-lbl" style={{ color: isChild ? "#7c3aed" : undefined }}>{label}</span>
-    </div>
-  );
-}
-
-function ProgressBar({ value, max, isChild }) {
-  return (
-    <div className={`progress-track ${isChild ? "progress-track-child" : "progress-track-adult"}`} style={{ margin: "0 18px" }}>
-      <div className={`progress-fill ${isChild ? "progress-child" : "progress-adult"}`} style={{ width: `${Math.min((value / max) * 100, 100)}%` }} />
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// PANTALLA: SELECCIÓN DE MODO
-// ═══════════════════════════════════════════════
-function ModeSelectScreen({ onSelect }) {
-  return (
-    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 20px", background:"linear-gradient(135deg,#0a0e1a 0%,#0f172a 50%,#1e1b4b 100%)" }}>
-      <div style={{ textAlign:"center", marginBottom:40 }} className="animate-fadeIn">
-        <div style={{ fontSize:72, marginBottom:8 }} className="animate-float">🧠</div>
-        <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:52, fontWeight:900, color:"#f59e0b", lineHeight:1.1, marginBottom:8 }}>Yóllotl</h1>
-        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:16 }}>Plataforma de Evaluación Cognitiva</p>
-      </div>
-
-      <div style={{ display:"flex", flexDirection:"column", gap:16, width:"100%", maxWidth:400 }} className="animate-fadeIn">
-        <button onClick={() => onSelect("child")}
-          style={{ padding:"24px 28px", borderRadius:22, background:"linear-gradient(135deg,rgba(139,92,246,0.2),rgba(236,72,153,0.2))", border:"2px solid rgba(139,92,246,0.35)", cursor:"pointer", textAlign:"left", transition:"all .25s" }}
-          onMouseEnter={e => e.currentTarget.style.transform="translateY(-3px)"}
-          onMouseLeave={e => e.currentTarget.style.transform="translateY(0)"}>
-          <div style={{ fontSize:40, marginBottom:8 }}>🌈 👶</div>
-          <div style={{ fontFamily:"'Fredoka One',cursive", fontSize:26, color:"#c4b5fd", marginBottom:4 }}>Modo Infantil</div>
-          <div style={{ color:"rgba(255,255,255,0.4)", fontSize:14 }}>Visual, colorido y divertido para niños</div>
-        </button>
-
-        <button onClick={() => onSelect("adult")}
-          style={{ padding:"24px 28px", borderRadius:22, background:"linear-gradient(135deg,rgba(217,119,6,0.1),rgba(59,130,246,0.1))", border:"2px solid rgba(217,119,6,0.25)", cursor:"pointer", textAlign:"left", transition:"all .25s" }}
-          onMouseEnter={e => e.currentTarget.style.transform="translateY(-3px)"}
-          onMouseLeave={e => e.currentTarget.style.transform="translateY(0)"}>
-          <div style={{ fontSize:40, marginBottom:8 }}>🧑‍⚕️</div>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:"#fbbf24", marginBottom:4 }}>Modo Adulto / Clínico</div>
-          <div style={{ color:"rgba(255,255,255,0.4)", fontSize:14 }}>Evaluación analítica para adultos y profesionales</div>
-        </button>
-      </div>
-
-      <p style={{ color:"rgba(255,255,255,0.15)", fontSize:11, textAlign:"center", marginTop:32, maxWidth:340, lineHeight:1.5 }}>{DISCLAIMER}</p>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// PANTALLA: HOME (lista de juegos)
-// ═══════════════════════════════════════════════
-const CHILD_GAMES = [
-  { id:"starcatch",  icon:"⭐", name:"Atrapa la Estrella",  domain:"Motor",    desc:"¡Atrapa las estrellas que caen!" },
-  { id:"simon",      icon:"🌈", name:"Memoria de Colores",  domain:"Memoria",  desc:"Repite la secuencia de colores" },
-  { id:"countlearn", icon:"🔢", name:"Cuenta y Aprende",    domain:"Números",  desc:"¿Cuántos emojis hay?" },
-  { id:"findanimal", icon:"🔍", name:"Encuentra el diferente", domain:"Atención", desc:"Busca el emoji diferente" },
-  { id:"puzzle",     icon:"🧩", name:"Ordena el Puzzle",    domain:"Lógica",   desc:"Ordena los emojis correctamente" },
-];
-const ADULT_GAMES = [
-  { id:"stroop",     icon:"🎨", name:"Stroop Test",           domain:"Inhibición", desc:"Controla tu impulso y responde correctamente" },
-  { id:"numspan",    icon:"🔑", name:"Span Numérico",          domain:"Memoria",    desc:"Recuerda y escribe la secuencia de números" },
-  { id:"numseq",     icon:"📐", name:"Secuencia Numérica",     domain:"Razonamiento",desc:"¿Qué número sigue en el patrón?" },
-  { id:"tachy",      icon:"⚡", name:"Tachistoscopio",         domain:"Percepción", desc:"Identifica la figura que parpadea" },
-  { id:"nback",      icon:"🔁", name:"N-Back",                domain:"Ejecutivo",  desc:"¿La figura coincide con hace 2 turnos?" },
-];
-
-function HomeScreen({ isChild, onSelectGame, onHistory, onSettings, onChangeMode, patientName, setPatientName }) {
-  const games = isChild ? CHILD_GAMES : ADULT_GAMES;
-  const fg = isChild ? "#7c3aed" : "#f59e0b";
-  return (
-    <div className={isChild ? "child-bg" : ""} style={{ minHeight:"100vh" }}>
-      {/* HEADER */}
-      <div className={`header-bar ${isChild ? "header-child" : "header-adult"}`}>
-        <span style={{ fontFamily: isChild ? "'Fredoka One',cursive" : "'Playfair Display',serif", fontSize:22, fontWeight:900, color: fg }}>Yóllotl</span>
-        <div style={{ display:"flex", gap:6 }}>
-          <Btn onClick={onHistory}    variant="ghost" size="sm" isChild={isChild} ariaLabel="Historial">📋</Btn>
-          <Btn onClick={onSettings}   variant="ghost" size="sm" isChild={isChild} ariaLabel="Configuración">⚙️</Btn>
-          <Btn onClick={onChangeMode} variant="ghost" size="sm" isChild={isChild} ariaLabel="Cambiar modo">🔄 Modo</Btn>
-        </div>
-      </div>
-
-      <div style={{ padding:"20px 18px 0" }}>
-        {/* CAMPO NOMBRE */}
-        <div style={{ marginBottom:16 }}>
-          <label style={{ fontSize:13, color: isChild ? "#7c3aed" : "rgba(255,255,255,0.5)", marginBottom:6, display:"block" }}>
-            {isChild ? "👤 ¿Cómo te llamas?" : "👤 Nombre del paciente"}
-          </label>
-          <input
-            className={isChild ? "input-child" : "input-adult"}
-            placeholder={isChild ? "Escribe tu nombre aquí..." : "Nombre completo del paciente..."}
-            value={patientName}
-            onChange={e => setPatientName(e.target.value)}
-            aria-label="Nombre del paciente"
-          />
-        </div>
-
-        <h2 style={{ fontFamily: isChild ? "'Fredoka One',cursive" : "'Playfair Display',serif", fontSize: isChild ? 28 : 22, color: isChild ? "#6d28d9" : "#fff", marginBottom:14 }}>
-          {isChild ? "🎮 ¡Elige tu juego!" : "Selecciona una prueba"}
-        </h2>
-
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {games.map((g, i) => (
-            <button key={g.id} onClick={() => onSelectGame(g.id)}
-              className={isChild ? "glass-light" : "glass-dark"}
-              style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 18px", cursor:"pointer", border:"none", textAlign:"left", width:"100%", transition:"all .2s", animation:`fadeIn .3s ${i * 0.06}s both` }}
-              onMouseEnter={e => e.currentTarget.style.transform="translateX(4px)"}
-              onMouseLeave={e => e.currentTarget.style.transform="translateX(0)"}
-              aria-label={`Jugar ${g.name}`}>
-              <span style={{ fontSize:36 }}>{g.icon}</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:16, color: isChild ? "#4c1d95" : "#fff", marginBottom:2 }}>{g.name}</div>
-                <div style={{ fontSize:13, color: isChild ? "#7c3aed" : "rgba(255,255,255,0.4)" }}>{g.desc}</div>
-              </div>
-              <div style={{ fontSize:11, padding:"4px 10px", borderRadius:99, background: isChild ? "rgba(139,92,246,0.15)" : "rgba(217,119,6,0.15)", color: isChild ? "#7c3aed" : "#f59e0b", whiteSpace:"nowrap" }}>{g.domain}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <div className={`footer-bar ${isChild ? "footer-child" : "footer-adult"}`}>{DISCLAIMER}</div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// PANTALLA: INTRO DE JUEGO (nombre + instrucciones)
-// ═══════════════════════════════════════════════
-function GameIntro({ gameInfo, isChild, patientName, setPatientName, onStart, onBack }) {
-  const fg = isChild ? "#6d28d9" : "#f59e0b";
-  return (
-    <div className={`screen ${isChild ? "child-bg" : ""}`} style={{ minHeight:"100vh", display:"flex", flexDirection:"column" }}>
-      <div className={`header-bar ${isChild ? "header-child" : "header-adult"}`}>
-        <Btn onClick={onBack} variant="ghost" size="sm" isChild={isChild}>← Volver</Btn>
-        <span style={{ fontFamily: isChild ? "'Fredoka One',cursive" : "'Playfair Display',serif", fontSize:18, color: fg }}>Yóllotl</span>
-        <div style={{width:60}}/>
-      </div>
-
-      <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 20px", gap:24 }}>
-        <div className="animate-float" style={{ fontSize:80 }}>{gameInfo.icon}</div>
-
-        <div style={{ textAlign:"center" }}>
-          <h2 style={{ fontFamily: isChild ? "'Fredoka One',cursive" : "'Playfair Display',serif", fontSize: isChild ? 34 : 28, color: fg, marginBottom:6 }}>
-            {gameInfo.name}
-          </h2>
-          <span style={{ fontSize:12, padding:"4px 12px", borderRadius:99, background: isChild ? "rgba(139,92,246,0.15)" : "rgba(217,119,6,0.15)", color: isChild ? "#7c3aed" : "#f59e0b" }}>
-            {gameInfo.domain}
-          </span>
-        </div>
-
-        {/* INSTRUCCIONES SIMPLIFICADAS */}
-        <div className={isChild ? "glass-light" : "glass-dark"} style={{ padding:"20px 22px", width:"100%", maxWidth:400 }}>
-          <p style={{ fontSize:13, fontWeight:700, color: isChild ? "#7c3aed" : "rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>📋 Instrucciones</p>
-          <p style={{ fontSize: isChild ? 17 : 15, color: isChild ? "#4c1d95" : "rgba(255,255,255,0.75)", lineHeight:1.65 }}>
-            {gameInfo.instructions}
-          </p>
-        </div>
-
-        {/* NOMBRE DEL PACIENTE */}
-        <div style={{ width:"100%", maxWidth:400 }}>
-          <label style={{ fontSize:14, color: isChild ? "#7c3aed" : "rgba(255,255,255,0.5)", marginBottom:8, display:"block", fontWeight:600 }}>
-            {isChild ? "👤 ¿Cómo te llamas?" : "👤 Nombre del paciente"}
-          </label>
-          <input
-            className={isChild ? "input-child" : "input-adult"}
-            placeholder={isChild ? "Escribe tu nombre..." : "Nombre completo del paciente..."}
-            value={patientName}
-            onChange={e => setPatientName(e.target.value)}
-            aria-label="Nombre del paciente"
-          />
-        </div>
-
-        <Btn onClick={onStart} variant="primary" size="xl" isChild={isChild}>
-          {isChild ? "¡Jugar! 🚀" : "Comenzar prueba →"}
-        </Btn>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// PANTALLA: RESULTADOS
-// ═══════════════════════════════════════════════
-function ResultsScreen({ results, isChild, onSave, onBack }) {
-  const analysis = useMemo(() => generateClinicalAnalysis(results), [results]);
-  const fg = isChild ? "#6d28d9" : "#f59e0b";
-  const emoji = results.accuracy > 80 ? "🏆" : results.accuracy > 55 ? "🎯" : "💪";
-  const msg = results.accuracy > 80 ? (isChild ? "¡Increíble! ¡Lo lograste!" : "Rendimiento excelente") :
-              results.accuracy > 55 ? (isChild ? "¡Bien hecho!" : "Buen desempeño") :
-              (isChild ? "¡Sigue practicando!" : "Continúa entrenando");
-  return (
-    <div className={`screen ${isChild ? "child-bg" : ""}`} style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 20px" }}>
-      <div className="animate-pop" style={{ fontSize:72, marginBottom:8 }}>{emoji}</div>
-      <h2 style={{ fontFamily: isChild ? "'Fredoka One',cursive" : "'Playfair Display',serif", fontSize: isChild ? 32 : 26, color: fg, textAlign:"center", marginBottom:4 }}>{msg}</h2>
-      <p style={{ color: isChild ? "#8b5cf6" : "rgba(255,255,255,0.5)", fontStyle:"italic", marginBottom:24, textAlign:"center" }}>{results.encouragement}</p>
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, width:"100%", maxWidth:380, marginBottom:20 }}>
-        <MetricBadge label="Precisión" value={`${results.accuracy}%`} color={results.accuracy > 70 ? "#22c55e" : results.accuracy > 50 ? "#f59e0b" : "#ef4444"} isChild={isChild} />
-        <MetricBadge label="Puntuación" value={results.score} color={fg} isChild={isChild} />
-        <MetricBadge label="TR Promedio" value={results.avgRT > 0 ? `${results.avgRT}ms` : "—"} color="#60a5fa" isChild={isChild} />
-        <MetricBadge label="Dificultad Máx." value={`Niv. ${results.maxDifficulty}`} color={isChild ? "#ec4899" : "#fff"} isChild={isChild} />
-      </div>
-
-      {!isChild && (
-        <div className="glass-dark" style={{ padding:"16px 18px", width:"100%", maxWidth:380, marginBottom:20 }}>
-          <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:8 }}>Análisis clínico</p>
-          <p style={{ fontSize:13, color:"rgba(255,255,255,0.7)", lineHeight:1.6 }}>{analysis}</p>
-        </div>
-      )}
-
-      <div style={{ display:"flex", gap:10, width:"100%", maxWidth:380 }}>
-        <Btn onClick={onSave} variant="primary" size="lg" isChild={isChild} className="flex-1" style={{ flex:1 }}>
-          {isChild ? "💾 Guardar" : "Guardar sesión"}
-        </Btn>
-        <Btn onClick={onBack} variant="secondary" size="lg" isChild={isChild} style={{ flex:1 }}>
-          Menú
-        </Btn>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: ATRAPA LA ESTRELLA (corregido)
-// ═══════════════════════════════════════════════
-function StarCatchGame({ isChild, engine, onComplete }) {
-  const [barX, setBarX] = useState(50);
-  const [starPos, setStarPos] = useState({ x: 50, y: -5 });
-  const [lives, setLives] = useState(3);
-  const [score, setScore] = useState(0);
-  const [caught, setCaught] = useState(0);
-  const [missed, setMissed] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [feedback, setFeedback] = useState(null); // "hit"|"miss"
-  const [active, setActive] = useState(true);
-  const TOTAL = 15;
-  const arenaRef = useRef(null);
-  const stateRef = useRef({ barX: 50, active: true, lives: 3, score: 0, caught: 0, missed: 0, total: 0 });
-  const rafRef = useRef(null);
-  const starRef = useRef({ x: 50, y: -5, speed: 0.7 });
-
-  // Sync state to ref
-  useEffect(() => { stateRef.current.barX = barX; }, [barX]);
-
-  const launchStar = useCallback(() => {
-    starRef.current = { x: randInt(8, 92), y: -5, speed: 0.6 + engine.difficulty * 0.25 };
-    setStarPos({ x: starRef.current.x, y: -5 });
-  }, [engine.difficulty]);
-
-  const animate = useCallback(() => {
-    if (!stateRef.current.active) return;
-    starRef.current.y += starRef.current.speed;
-    setStarPos({ x: starRef.current.x, y: starRef.current.y });
-
-    if (starRef.current.y >= 90) {
-      const dx = Math.abs(starRef.current.x - stateRef.current.barX);
-      const hit = dx < 11;
-      if (hit) {
-        stateRef.current.score += 100 + engine.difficulty * 20;
-        stateRef.current.caught++;
-        setScore(stateRef.current.score);
-        setCaught(stateRef.current.caught);
-        setFeedback("hit");
-        engine.recordResult(true);
-      } else {
-        stateRef.current.lives--;
-        stateRef.current.missed++;
-        setLives(stateRef.current.lives);
-        setMissed(stateRef.current.missed);
-        setFeedback("miss");
-        engine.recordResult(false);
-      }
-
-      stateRef.current.total++;
-      setTotal(stateRef.current.total);
-      setTimeout(() => setFeedback(null), 350);
-
-      if (stateRef.current.lives <= 0 || stateRef.current.total >= TOTAL) {
-        stateRef.current.active = false;
-        setActive(false);
-        const acc = Math.round((stateRef.current.caught / stateRef.current.total) * 100);
-        setTimeout(() => onComplete({ score: stateRef.current.score, accuracy: acc, avgRT: 0, errors: stateRef.current.missed, maxDifficulty: engine.difficulty }), 500);
-        return;
-      }
-      launchStar();
-    }
-    rafRef.current = requestAnimationFrame(animate);
-  }, [engine, launchStar, onComplete]);
-
-  useEffect(() => {
-    launchStar();
-    rafRef.current = requestAnimationFrame(animate);
-    return () => { cancelAnimationFrame(rafRef.current); stateRef.current.active = false; };
-  }, []);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!arenaRef.current) return;
-    const rect = arenaRef.current.getBoundingClientRect();
-    const pct = Math.max(8, Math.min(92, ((e.clientX - rect.left) / rect.width) * 100));
-    setBarX(pct);
-    stateRef.current.barX = pct;
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    e.preventDefault();
-    if (!arenaRef.current) return;
-    const rect = arenaRef.current.getBoundingClientRect();
-    const pct = Math.max(8, Math.min(92, ((e.touches[0].clientX - rect.left) / rect.width) * 100));
-    setBarX(pct);
-    stateRef.current.barX = pct;
-  }, []);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Vidas" value={[...Array(3)].map((_,i)=>i<lives?"❤️":"🖤").join("")} color={isChild?"#ec4899":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color={isChild?"#6d28d9":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Atrapadas" value={`${caught}/${TOTAL}`} color="#22c55e" isChild={isChild} />
-      </div>
-      <ProgressBar value={total} max={TOTAL} isChild={isChild} />
-
-      <div ref={arenaRef}
-        className={`star-arena ${isChild ? "star-arena-child" : "star-arena-adult"}`}
-        style={{ marginTop:12, background: feedback === "hit" ? (isChild ? "linear-gradient(180deg,#bbf7d0,#a7f3d0)" : "linear-gradient(180deg,#052e16,#14532d)") : feedback === "miss" ? (isChild ? "linear-gradient(180deg,#fecaca,#fca5a5)" : "linear-gradient(180deg,#1c0505,#3f0808)") : undefined, transition:"background .3s" }}
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
-        onTouchStart={handleTouchMove}>
-
-        {/* Estrella */}
-        <div className="star-el" style={{ left:`${starPos.x}%`, top:`${starPos.y}%`, fontSize: isChild ? 44 : 36 }}>
-          {isChild ? "⭐" : "✦"}
-        </div>
-
-        {/* Barra */}
-        <div className={`bar-el ${isChild ? "bar-child" : "bar-adult"}`}
-          style={{ left:`${barX}%`, bottom:16 }} />
-
-        {/* Feedback overlay */}
-        {feedback === "hit"  && <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", fontSize:48, animation:"pop .3s ease" }}>✨</div>}
-        {feedback === "miss" && <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", fontSize:48, animation:"shake .4s ease" }}>💨</div>}
-      </div>
-      <p style={{ textAlign:"center", fontSize:13, color: isChild ? "rgba(124,58,237,0.6)" : "rgba(255,255,255,0.3)", marginTop:10 }}>
-        {isChild ? "🖱️ Mueve el ratón o desliza el dedo" : "Mueve el cursor para controlar la barra"}
-      </p>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: SIMON
-// ═══════════════════════════════════════════════
-function SimonGame({ isChild, engine, onComplete }) {
-  const COLORS = ["#ef4444","#3b82f6","#22c55e","#eab308"];
-  const LABELS = ["Rojo","Azul","Verde","Amarillo"];
-  const [seq, setSeq] = useState([]);
-  const [userSeq, setUserSeq] = useState([]);
-  const [lit, setLit] = useState(-1);
-  const [showing, setShowing] = useState(false);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [round, setRound] = useState(0);
-  const MAXROUND = 8;
-
-  const showSeq = useCallback((s) => {
-    setShowing(true); setUserSeq([]);
-    let i = 0;
-    const next = () => {
-      if (i >= s.length) { setLit(-1); setShowing(false); return; }
-      setLit(s[i]);
-      setTimeout(() => { setLit(-1); setTimeout(() => { i++; next(); }, 250); }, 700);
-    };
-    setTimeout(next, 600);
-  }, []);
-
-  useEffect(() => { showSeq([]); }, []);
-
-  const addRound = useCallback((prev) => {
-    const ns = [...prev, randInt(0,3)];
-    setSeq(ns); showSeq(ns);
-  }, [showSeq]);
-
-  useEffect(() => { addRound([]); }, []);
-
-  const handlePress = useCallback((idx) => {
-    if (showing) return;
-    const nu = [...userSeq, idx];
-    setUserSeq(nu);
-    setLit(idx); setTimeout(() => setLit(-1), 200);
-
-    if (nu[nu.length-1] !== seq[nu.length-1]) {
-      setErrors(e=>e+1); engine.recordResult(false);
-      onComplete({ score, accuracy: Math.round((round / Math.max(1,round+1))*100), avgRT:0, errors:errors+1, maxDifficulty:engine.difficulty });
-      return;
-    }
-    if (nu.length === seq.length) {
-      engine.recordResult(true);
-      const ns = score + seq.length * 60;
-      setScore(ns);
-      const nr = round+1;
-      setRound(nr);
-      if (nr >= MAXROUND) onComplete({ score:ns, accuracy:100, avgRT:0, errors, maxDifficulty:engine.difficulty });
-      else addRound(seq);
-    }
-  }, [showing, userSeq, seq, score, round, errors, engine, addRound, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Ronda" value={`${round}/${MAXROUND}`} color={isChild?"#6d28d9":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color={isChild?"#ec4899":"#fff"} isChild={isChild} />
-        <MetricBadge label="Estado" value={showing?"👀 Observa":"🎯 Tu turno"} color={showing?"#60a5fa":"#22c55e"} isChild={isChild} />
-      </div>
-      <ProgressBar value={round} max={MAXROUND} isChild={isChild} />
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginTop:20 }}>
-        {COLORS.map((c,i)=>(
-          <button key={i} onClick={()=>handlePress(i)} disabled={showing}
-            aria-label={LABELS[i]}
-            style={{ height:120, borderRadius:22, border:"none", cursor:"pointer", background:c,
-              opacity: lit===i ? 1 : 0.55, transform: lit===i ? "scale(1.12)" : "scale(1)",
-              boxShadow: lit===i ? `0 0 36px ${c}` : "0 4px 16px rgba(0,0,0,0.3)",
-              transition:"all .12s", fontSize:32, color:"rgba(255,255,255,0.85)", fontWeight:900 }}>
-            {lit===i ? "✓" : ""}
-          </button>
-        ))}
-      </div>
-      {!showing && (
-        <p style={{ textAlign:"center", marginTop:14, fontSize:14, color: isChild ? "#7c3aed" : "rgba(255,255,255,0.4)" }}>
-          Repite la secuencia: {userSeq.length}/{seq.length}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: CUENTA Y APRENDE
-// ═══════════════════════════════════════════════
-function CountLearnGame({ isChild, engine, onComplete }) {
-  const EMOJIS = ["🍎","🌟","🐶","🦋","🎈","🌸","🍕","🎯","🦄","🍦","🌈","🎪"];
-  const [emoji, setEmoji] = useState("🍎");
-  const [count, setCount] = useState(3);
-  const [options, setOptions] = useState([]);
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [feedback, setFeedback] = useState(null);
-  const [disabled, setDisabled] = useState(false);
-  const TOTAL = 10;
-
-  const next = useCallback(() => {
-    const e = pick(EMOJIS);
-    const max = Math.min(3 + engine.difficulty * 2, 12);
-    const n = randInt(1, max);
-    const opts = new Set([n]);
-    while (opts.size < 4) opts.add(randInt(1, max + 2));
-    setEmoji(e); setCount(n); setOptions(shuffle([...opts]));
-    setFeedback(null); setDisabled(false);
-  }, [engine.difficulty]);
-
-  useEffect(() => { next(); }, []);
-
-  const handleAnswer = useCallback((ans) => {
-    if (disabled) return;
-    setDisabled(true);
-    const correct = ans === count;
-    engine.recordResult(correct);
-    setFeedback(correct ? "correct" : "error");
-    if (correct) setScore(s => s + 100); else setErrors(e => e + 1);
-    const nt = trial + 1; setTrial(nt);
-    if (nt >= TOTAL) setTimeout(() => onComplete({ score: score+(correct?100:0), accuracy: Math.round(((nt-errors-(correct?0:1))/nt)*100), avgRT:0, errors:errors+(correct?0:1), maxDifficulty:engine.difficulty }), 800);
-    else setTimeout(next, 900);
-  }, [disabled, count, trial, score, errors, engine, next, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Pregunta" value={`${trial+1}/${TOTAL}`} color={isChild?"#6d28d9":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color={isChild?"#ec4899":"#fff"} isChild={isChild} />
-        <MetricBadge label="Errores" value={errors} color="#ef4444" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ marginTop:16, minHeight:140, display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center", alignItems:"center", padding:16, borderRadius:20, background: isChild?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.04)", border:`2px solid ${isChild?"rgba(139,92,246,0.2)":"rgba(255,255,255,0.08)"}`, transition:"all .25s" }}>
-        {[...Array(count)].map((_,i)=><span key={i} style={{ fontSize:38 }}>{emoji}</span>)}
-      </div>
-
-      <p style={{ textAlign:"center", fontSize:18, fontWeight:700, color: isChild?"#6d28d9":"#fff", margin:"14px 0 12px" }}>
-        ¿Cuántos {emoji} ves?
-      </p>
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-        {options.map((o,i)=>(
-          <Btn key={i} onClick={()=>handleAnswer(o)} disabled={disabled} isChild={isChild} size="lg"
-            style={{ fontSize:28, fontWeight:900, height:70 }}>{o}</Btn>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: ENCUENTRA EL DIFERENTE (mejorado)
-// ═══════════════════════════════════════════════
-function FindAnimalGame({ isChild, engine, onComplete }) {
-  const POOL = [...ANIMALS_POOL, ...THINGS_POOL];
-  const [grid, setGrid] = useState([]);
-  const [targetIdx, setTargetIdx] = useState(-1);
-  const [intruder, setIntruder] = useState("");
-  const [main, setMain] = useState("");
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [found, setFound] = useState(false);
-  const [wrongIdx, setWrongIdx] = useState(-1);
-  const TOTAL = 10;
-  const SIZE = 16;
-  const startRef = useRef(null);
-
-  const next = useCallback(() => {
-    const available = shuffle(POOL);
-    const m = available[0];
-    let d;
-    do { d = available[randInt(1, available.length-1)]; } while(d===m);
-    const idx = randInt(0, SIZE-1);
-    const g = Array.from({length:SIZE},(_,i)=>i===idx?d:m);
-    setMain(m); setIntruder(d); setTargetIdx(idx);
-    setGrid(g); setFound(false); setWrongIdx(-1);
-    startRef.current = Date.now();
-  }, []);
-
-  useEffect(() => { next(); }, []);
-
-  const handleClick = useCallback((idx) => {
-    if (found) return;
-    const elapsed = Date.now() - startRef.current;
-    const correct = idx === targetIdx;
-    setFound(true);
-    if (!correct) setWrongIdx(idx);
-    setRt(r=>[...r,elapsed]);
-    engine.recordResult(correct);
-    if (correct) setScore(s=>s+Math.max(50,1200-elapsed));
-    else setErrors(e=>e+1);
-    const nt=trial+1; setTrial(nt);
-    if (nt>=TOTAL) {
-      const avgRT=avgArr([...rt,elapsed]);
-      setTimeout(()=>onComplete({score:score+(correct?Math.max(50,1200-elapsed):0),accuracy:Math.round(((nt-errors-(correct?0:1))/nt)*100),avgRT,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),800);
-    } else setTimeout(next,900);
-  }, [found, targetIdx, trial, score, errors, rt, engine, next, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Ensayo" value={`${trial+1}/${TOTAL}`} color={isChild?"#6d28d9":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color={isChild?"#ec4899":"#fff"} isChild={isChild} />
-        <MetricBadge label="Errores" value={errors} color="#ef4444" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      {/* MUESTRA CUÁL BUSCAR */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"14px 0 12px", padding:"12px 18px", borderRadius:16, background: isChild?"rgba(255,255,255,0.6)":"rgba(255,255,255,0.07)", border: isChild?"2px solid rgba(139,92,246,0.25)":"1px solid rgba(255,255,255,0.1)" }}>
-        <span style={{ fontSize:14, color: isChild?"#7c3aed":"rgba(255,255,255,0.5)", fontWeight:600 }}>🔍 Busca:</span>
-        <span style={{ fontSize:44 }}>{intruder}</span>
-        <span style={{ fontSize:13, color: isChild?"#7c3aed":"rgba(255,255,255,0.4)" }}>(el diferente)</span>
-      </div>
-
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
-        {grid.map((e,i)=>(
-          <button key={i} onClick={()=>handleClick(i)} disabled={found}
-            style={{ fontSize:38, height:70, borderRadius:14, border:"2px solid transparent",
-              background: found && i===targetIdx ? "rgba(34,197,94,0.25)" : found && i===wrongIdx ? "rgba(239,68,68,0.25)" : isChild?"rgba(255,255,255,0.6)":"rgba(255,255,255,0.06)",
-              borderColor: found && i===targetIdx ? "#22c55e" : found && i===wrongIdx ? "#ef4444" : "transparent",
-              cursor:"pointer", transition:"all .15s", transform: found&&i===targetIdx?"scale(1.12)":"scale(1)" }}>
-            {e}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: PUZZLE
-// ═══════════════════════════════════════════════
-function PuzzleGame({ isChild, engine, onComplete }) {
-  const [trialIdx, setTrialIdx] = useState(0);
-  const [shuffled, setShuffled] = useState([]);
-  const [userOrder, setUserOrder] = useState([]);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [feedback, setFeedback] = useState(null);
-
-  const setup = useCallback((idx) => {
-    const t = PUZZLE_SEQ[idx % PUZZLE_SEQ.length];
-    setShuffled(shuffle(t.items));
-    setUserOrder([]); setFeedback(null);
-  }, []);
-
-  useEffect(() => { setup(0); }, []);
-
-  const pick_item = useCallback((item) => {
-    if (feedback) return;
-    const nu = [...userOrder, item];
-    setUserOrder(nu);
-    setShuffled(s => s.filter(x => x !== item));
-
-    if (nu.length === PUZZLE_SEQ[trialIdx % PUZZLE_SEQ.length].items.length) {
-      const correct = nu.join("") === PUZZLE_SEQ[trialIdx % PUZZLE_SEQ.length].answer.join("");
-      engine.recordResult(correct);
-      setFeedback(correct ? "correct" : "error");
-      if (correct) setScore(s=>s+200); else setErrors(e=>e+1);
-      const nt = trialIdx+1;
-      if (nt >= PUZZLE_SEQ.length) {
-        setTimeout(()=>onComplete({score:score+(correct?200:0),accuracy:Math.round(((nt-errors-(correct?0:1))/nt)*100),avgRT:0,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),900);
-      } else setTimeout(()=>{ setTrialIdx(nt); setup(nt); },1000);
-    }
-  }, [feedback, userOrder, trialIdx, score, errors, engine, setup, onComplete]);
-
-  const cur = PUZZLE_SEQ[trialIdx % PUZZLE_SEQ.length];
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Puzzle" value={`${trialIdx+1}/${PUZZLE_SEQ.length}`} color={isChild?"#6d28d9":"#f59e0b"} isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color={isChild?"#ec4899":"#fff"} isChild={isChild} />
-      </div>
-      <ProgressBar value={trialIdx} max={PUZZLE_SEQ.length} isChild={isChild} />
-
-      <p style={{ textAlign:"center", fontSize:17, fontWeight:700, color: isChild?"#6d28d9":"#fff", margin:"16px 0 12px", padding:"10px 16px", borderRadius:14, background:isChild?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.06)" }}>{cur.label}</p>
-
-      {/* Área respuesta */}
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ minHeight:80, display:"flex", gap:10, justifyContent:"center", alignItems:"center", padding:14, borderRadius:18, border:`2px dashed ${isChild?"rgba(139,92,246,0.3)":"rgba(255,255,255,0.12)"}`, marginBottom:16, transition:"all .25s" }}>
-        {userOrder.length===0 ? <span style={{ color: isChild?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.2)", fontSize:14 }}>Toca los emojis en orden...</span>
-          : userOrder.map((e,i)=><span key={i} style={{ fontSize:42 }}>{e}</span>)}
-      </div>
-
-      {/* Opciones */}
-      <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
-        {shuffled.map((e,i)=>(
-          <button key={i} onClick={()=>pick_item(e)} disabled={!!feedback}
-            style={{ fontSize:44, width:80, height:80, borderRadius:18, border:`2px solid ${isChild?"rgba(139,92,246,0.3)":"rgba(255,255,255,0.12)"}`, background:isChild?"rgba(255,255,255,0.7)":"rgba(255,255,255,0.07)", cursor:"pointer", transition:"all .15s" }}
-            onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"}
-            onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
-            {e}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: STROOP TEST
-// ═══════════════════════════════════════════════
-function StroopGame({ isChild, engine, onComplete }) {
-  const [current, setCurrent] = useState(null);
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [feedback, setFeedback] = useState(null);
-  const [disabled, setDisabled] = useState(false);
-  const TOTAL = 20;
-  const startRef = useRef(null);
-
-  const next = useCallback(() => {
-    const item = STROOP_ITEMS[randInt(0,STROOP_ITEMS.length-1)];
-    setCurrent(item); setFeedback(null); setDisabled(false);
-    startRef.current = Date.now();
-  }, []);
-
-  useEffect(() => { next(); }, []);
-
-  const handleAnswer = useCallback((ans) => {
-    if (disabled) return;
-    setDisabled(true);
-    const elapsed = Date.now() - startRef.current;
-    const correct = ans === current.answer;
-    setRt(r=>[...r,elapsed]); engine.recordResult(correct);
-    setFeedback(correct?"correct":"error");
-    if (correct) setScore(s=>s+Math.max(80,500-elapsed)); else setErrors(e=>e+1);
-    const nt=trial+1; setTrial(nt);
-    if (nt>=TOTAL) { const avg=avgArr([...rt,elapsed]); setTimeout(()=>onComplete({score,accuracy:Math.round(((TOTAL-errors-(correct?0:1))/TOTAL)*100),avgRT:avg,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),700); }
-    else setTimeout(next,700);
-  }, [disabled, current, trial, score, errors, rt, engine, next, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Ensayo" value={`${trial}/${TOTAL}`} color="#fff" isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color="#f59e0b" isChild={isChild} />
-        <MetricBadge label="Errores" value={errors} color="#ef4444" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:140, marginTop:16, borderRadius:22, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", transition:"all .2s" }}>
-        {current && <span style={{ fontSize:60, fontWeight:900, fontFamily:"'Playfair Display',serif", color:current.ink, userSelect:"none" }}>{current.word}</span>}
-      </div>
-
-      <p style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.35)", margin:"12px 0 10px" }}>Presiona el botón con el COLOR DE LA TINTA (ignora lo que dice)</p>
-
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
-        {STROOP_WORDS.map(sw=>(
-          <button key={sw.name} onClick={()=>handleAnswer(sw.name)} disabled={disabled}
-            aria-label={sw.name}
-            style={{ width:56, height:56, borderRadius:14, border:"2px solid rgba(255,255,255,0.15)", background:sw.namedColor, cursor:"pointer", transition:"all .15s", opacity:disabled?0.35:1 }}
-            onMouseEnter={e=>!disabled&&(e.currentTarget.style.transform="scale(1.15)")}
-            onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: SPAN NUMÉRICO (por niveles)
-// ═══════════════════════════════════════════════
-function NumSpanGame({ isChild, engine, onComplete }) {
-  const [level, setLevel] = useState(2); // empieza en 2 dígitos
-  const [phase, setPhase] = useState("show"); // show|input
-  const [sequence, setSequence] = useState([]);
-  const [showIdx, setShowIdx] = useState(0);
-  const [input, setInput] = useState("");
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [feedback, setFeedback] = useState(null);
-  const [levelMsg, setLevelMsg] = useState(null);
-  const TOTAL = 10;
-  const MAX_LEVEL = 8;
-  const startRef = useRef(null);
-  const timerRef = useRef(null);
-
-  const launchSeq = useCallback((lvl) => {
-    const seq = Array.from({length:lvl},()=>randInt(1,9));
-    setSequence(seq); setShowIdx(0); setPhase("show"); setInput(""); setFeedback(null);
-  }, []);
-
-  useEffect(() => { launchSeq(level); }, []);
-
-  useEffect(() => {
-    if (phase !== "show") return;
-    timerRef.current = setTimeout(() => {
-      if (showIdx < sequence.length - 1) setShowIdx(i=>i+1);
-      else {
-        setPhase("input");
-        startRef.current = Date.now();
-      }
-    }, 900);
-    return () => clearTimeout(timerRef.current);
-  }, [phase, showIdx, sequence.length]);
-
-  const handleSubmit = useCallback(() => {
-    const elapsed = Date.now() - startRef.current;
-    const correct = input === sequence.join("");
-    setRt(r=>[...r,elapsed]); engine.recordResult(correct);
-    setFeedback(correct?"correct":"error");
-
-    let newLevel = level;
-    if (correct) {
-      setScore(s=>s+level*120);
-      if (level < MAX_LEVEL) {
-        newLevel = level + 1;
-        setLevel(newLevel);
-        setLevelMsg(`¡Nivel ${newLevel}! +${level} dígitos`);
-        setTimeout(() => setLevelMsg(null), 1200);
-      }
-    } else {
-      setErrors(e=>e+1);
-      if (level > 2) { newLevel = level - 1; setLevel(newLevel); }
-    }
-
-    const nt=trial+1; setTrial(nt);
-    if (nt>=TOTAL) {
-      const avg=avgArr([...rt,elapsed]);
-      setTimeout(()=>onComplete({score:score+(correct?level*120:0),accuracy:Math.round(((nt-errors-(correct?0:1))/nt)*100),avgRT:avg,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),800);
-    } else {
-      setTimeout(()=>launchSeq(newLevel),1000);
-    }
-  }, [input, sequence, level, trial, score, errors, rt, engine, launchSeq, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Ensayo" value={`${trial+1}/${TOTAL}`} color="#fff" isChild={isChild} />
-        <MetricBadge label="Nivel" value={`${level} dígitos`} color="#f59e0b" isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color="#22c55e" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      {levelMsg && (
-        <div className="animate-pop" style={{ textAlign:"center", padding:"8px 16px", borderRadius:14, background:"rgba(217,119,6,0.2)", color:"#fbbf24", fontWeight:700, fontSize:16, margin:"10px 0" }}>
-          {levelMsg}
-        </div>
-      )}
-
-      {/* DISPLAY NÚMERO */}
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ width:180, height:180, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:22, margin:"16px auto", border:"2px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", transition:"all .15s" }}>
-        {phase==="show" ? (
-          <span style={{ fontSize:90, fontWeight:900, color:"#fff", fontFamily:"'Playfair Display',serif" }}>
-            {sequence[showIdx]}
-          </span>
-        ) : (
-          <span style={{ fontSize:48, color: feedback==="correct"?"#22c55e":feedback==="error"?"#ef4444":"rgba(255,255,255,0.25)", fontWeight:700 }}>
-            {feedback==="correct"?"✓":feedback==="error"?"✗":"✎"}
-          </span>
-        )}
-      </div>
-
-      {phase==="input" && !feedback && (
-        <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
-          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:14 }}>Escribe los {level} números que viste (en orden)</p>
-          <input className="input-adult" style={{ textAlign:"center", fontSize:28, letterSpacing:"0.35em", maxWidth:260 }}
-            type="text" value={input} onChange={e=>setInput(e.target.value.replace(/\D/g,""))}
-            maxLength={level} autoFocus
-            placeholder={"_".repeat(level)}
-            onKeyDown={e=>e.key==="Enter"&&input.length===level&&handleSubmit()}
-            aria-label="Escribe la secuencia numérica" />
-          <Btn onClick={handleSubmit} disabled={input.length!==level} isChild={isChild} size="lg">Confirmar</Btn>
-        </div>
-      )}
-
-      {phase==="show" && (
-        <p style={{ textAlign:"center", color:"rgba(255,255,255,0.3)", fontSize:14, marginTop:8 }} className="animate-pulse">
-          Memoriza el número... ({showIdx+1}/{sequence.length})
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: SECUENCIA NUMÉRICA
-// ═══════════════════════════════════════════════
-const NUM_SEQS = [
-  { seq:[2,4,6,8,"?"],         ans:10,  opts:[9,10,11,12]      },
-  { seq:[1,3,6,10,"?"],        ans:15,  opts:[13,14,15,16]     },
-  { seq:[100,50,25,"?"],       ans:12.5,opts:[10,12.5,13,15]   },
-  { seq:[2,6,18,54,"?"],       ans:162, opts:[108,148,162,180] },
-  { seq:[1,4,9,16,"?"],        ans:25,  opts:[20,24,25,30]     },
-  { seq:[3,7,15,31,"?"],       ans:63,  opts:[47,55,63,71]     },
-  { seq:[5,10,20,40,"?"],      ans:80,  opts:[60,70,80,90]     },
-  { seq:[1,1,2,3,5,"?"],       ans:8,   opts:[6,7,8,9]        },
-  { seq:[144,72,36,18,"?"],    ans:9,   opts:[6,8,9,12]        },
-  { seq:[2,3,5,7,11,"?"],      ans:13,  opts:[12,13,14,15]     },
-];
-
-function NumSeqGame({ isChild, engine, onComplete }) {
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [feedback, setFeedback] = useState(null);
-  const [disabled, setDisabled] = useState(false);
-  const TOTAL = NUM_SEQS.length;
-  const startRef = useRef(Date.now());
-
-  useEffect(() => { startRef.current = Date.now(); }, [trial]);
-
-  const handleAnswer = useCallback((ans) => {
-    if (disabled) return;
-    setDisabled(true);
-    const elapsed = Date.now() - startRef.current;
-    const correct = ans === NUM_SEQS[trial].ans;
-    setRt(r=>[...r,elapsed]); engine.recordResult(correct);
-    setFeedback(correct?"correct":"error");
-    if (correct) setScore(s=>s+Math.max(100,1200-elapsed)); else setErrors(e=>e+1);
-    const nt=trial+1;
-    if (nt>=TOTAL) { const avg=avgArr([...rt,elapsed]); setTimeout(()=>onComplete({score,accuracy:Math.round(((TOTAL-errors-(correct?0:1))/TOTAL)*100),avgRT:avg,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),800); }
-    else setTimeout(()=>{ setTrial(nt); setFeedback(null); setDisabled(false); },900);
-  }, [disabled, trial, score, errors, rt, engine, onComplete]);
-
-  const cur = NUM_SEQS[trial];
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Pregunta" value={`${trial+1}/${TOTAL}`} color="#fff" isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color="#f59e0b" isChild={isChild} />
-        <MetricBadge label="Errores" value={errors} color="#ef4444" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ margin:"16px 0 14px", padding:"22px 16px", borderRadius:22, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", textAlign:"center", transition:"all .2s" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, flexWrap:"wrap" }}>
-          {cur.seq.map((n,i)=>(
-            <React.Fragment key={i}>
-              <span style={{ fontSize:34, fontWeight:900, color:n==="?"?"#f59e0b":"#fff", fontFamily:"'Playfair Display',serif", animation:n==="?"?"pulse 1.2s infinite":undefined }}>{n}</span>
-              {i<cur.seq.length-1&&<span style={{ fontSize:18, color:"rgba(255,255,255,0.2)" }}>→</span>}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-        {cur.opts.map((o,i)=>(
-          <Btn key={i} onClick={()=>handleAnswer(o)} disabled={disabled} isChild={isChild} size="lg"
-            style={{ fontSize:24, fontWeight:900, height:66 }}>{o}</Btn>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: TACHISTOSCOPIO (mejorado según solicitud)
-// ═══════════════════════════════════════════════
-function TachyGame({ isChild, engine, onComplete }) {
-  const [phase, setPhase] = useState("showing"); // showing|answering
-  const [target, setTarget] = useState(null);
-  const [options, setOptions] = useState([]);
-  const [visible, setVisible] = useState(true);
-  const [trial, setTrial] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [feedback, setFeedback] = useState(null);
-  const [disabled, setDisabled] = useState(false);
-  const [countdown, setCountdown] = useState(null);
-  const TOTAL = 15;
-  const startRef = useRef(null);
-
-  const exposureMs = useMemo(() => [700,500,350,220,150][Math.min(engine.difficulty-1,4)], [engine.difficulty]);
-
-  const runTrial = useCallback(() => {
-    const t = pick(SHAPES);
-    let opts = [t];
-    while (opts.length < 3) { const o=pick(SHAPES); if(!opts.includes(o)) opts.push(o); }
-    setTarget(t); setOptions(shuffle(opts));
-    setVisible(true); setFeedback(null); setDisabled(false); setPhase("showing");
-    setCountdown(null);
-
-    setTimeout(() => {
-      setVisible(false);
-      setPhase("answering");
-      startRef.current = Date.now();
-    }, exposureMs);
-  }, [exposureMs]);
-
-  useEffect(() => { runTrial(); }, []);
-
-  const handleAnswer = useCallback((sym) => {
-    if (disabled || phase !== "answering") return;
-    setDisabled(true);
-    const elapsed = Date.now() - startRef.current;
-    const correct = sym === target;
-    setRt(r=>[...r,elapsed]); engine.recordResult(correct);
-    setFeedback(correct?"correct":"error");
-    if (correct) setScore(s=>s+200); else setErrors(e=>e+1);
-    const nt=trial+1; setTrial(nt);
-    if (nt>=TOTAL) { const avg=avgArr([...rt,elapsed]); setTimeout(()=>onComplete({score,accuracy:Math.round(((TOTAL-errors-(correct?0:1))/TOTAL)*100),avgRT:avg,errors:errors+(correct?0:1),maxDifficulty:engine.difficulty}),700); }
-    else setTimeout(runTrial,900);
-  }, [disabled, phase, target, trial, score, errors, rt, engine, runTrial, onComplete]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Ensayo" value={`${trial+1}/${TOTAL}`} color="#fff" isChild={isChild} />
-        <MetricBadge label="Puntos" value={score} color="#f59e0b" isChild={isChild} />
-        <MetricBadge label="Expo." value={`${exposureMs}ms`} color="#60a5fa" isChild={isChild} />
-      </div>
-      <ProgressBar value={trial} max={TOTAL} isChild={isChild} />
-
-      {/* FIGURA QUE PARPADEA */}
-      <div className={`tachy-display ${isChild?"tachy-child":"tachy-adult"} ${visible?"tachy-flash":""} ${feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""}`}
-        style={{ marginTop:16, marginBottom:14 }}>
-        {visible ? target : (phase==="answering" ? "?" : "")}
-      </div>
-
-      <p style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>
-        {visible ? "¡Memoriza esta figura!" : "¿Cuál fue la figura?"}
-      </p>
-
-      {/* 3 OPCIONES (una es la correcta) */}
-      <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-        {options.map((o,i)=>(
-          <button key={i} onClick={()=>handleAnswer(o)} disabled={disabled||visible}
-            style={{ width:90, height:90, fontSize:56, borderRadius:18,
-              border:`2px solid ${feedback&&o===target?"#22c55e":feedback&&o!==target?"rgba(239,68,68,0.3)":"rgba(255,255,255,0.15)"}`,
-              background: feedback&&o===target?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)",
-              cursor:"pointer", transition:"all .15s", opacity:disabled&&o!==target&&o!==options[0]?0.5:1 }}
-            onMouseEnter={e=>!disabled&&!visible&&(e.currentTarget.style.background="rgba(255,255,255,0.12)")}
-            onMouseLeave={e=>e.currentTarget.style.background=feedback&&o===target?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.05)"}>
-            {o}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// JUEGO: N-BACK
-// ═══════════════════════════════════════════════
-function NBackGame({ isChild, engine, onComplete }) {
-  const N = 2;
-  const [seq, setSeq] = useState([]);
-  const [idx, setIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [errors, setErrors] = useState(0);
-  const [rt, setRt] = useState([]);
-  const [responded, setResponded] = useState(false);
-  const [feedback, setFeedback] = useState(null);
-  const TOTAL = 25;
-  const startRef = useRef(null);
-  const activeRef = useRef(true);
-
-  useEffect(() => {
-    const s = Array.from({length:TOTAL},()=>pick(SHAPES));
-    setSeq(s);
-  }, []);
-
-  useEffect(() => {
-    if (!seq.length) return;
-    startRef.current = Date.now();
-    const speed = engine.getSpeed();
-    const timer = setTimeout(() => {
-      if (!activeRef.current) return;
-      if (!responded && idx >= N && seq[idx]===seq[idx-N]) {
-        setErrors(e=>e+1); engine.recordResult(false);
-      }
-      const ni = idx+1;
-      if (ni >= TOTAL) {
-        const avg=avgArr(rt);
-        setTimeout(()=>onComplete({score,accuracy:Math.round(((TOTAL-errors)/TOTAL)*100),avgRT:avg,errors,maxDifficulty:engine.difficulty}),300);
-        return;
-      }
-      setIdx(ni); setResponded(false); setFeedback(null);
-      startRef.current = Date.now();
-    }, speed);
-    return () => clearTimeout(timer);
-  }, [idx, seq]);
-
-  useEffect(() => { return () => { activeRef.current=false; }; }, []);
-
-  const handleMatch = useCallback(() => {
-    if (responded || idx < N || !seq.length) return;
-    const elapsed = Date.now()-startRef.current;
-    const isMatch = seq[idx]===seq[idx-N];
-    setResponded(true);
-    setRt(r=>[...r,elapsed]);
-    if (isMatch) { setScore(s=>s+Math.max(50,400-elapsed)); setFeedback("correct"); engine.recordResult(true); }
-    else { setErrors(e=>e+1); setFeedback("error"); engine.recordResult(false); }
-  }, [responded, idx, seq, engine]);
-
-  return (
-    <div style={{ padding:"16px 18px" }}>
-      <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-        <MetricBadge label="Puntos" value={score} color="#f59e0b" isChild={isChild} />
-        <MetricBadge label="Turno" value={`${idx+1}/${TOTAL}`} color="#fff" isChild={isChild} />
-        <MetricBadge label="Errores" value={errors} color="#ef4444" isChild={isChild} />
-      </div>
-      <ProgressBar value={idx} max={TOTAL} isChild={isChild} />
-
-      {/* HISTORIAL ÚLTIMOS 3 */}
-      <div style={{ display:"flex", justifyContent:"center", gap:10, margin:"14px 0 10px" }}>
-        {seq.slice(Math.max(0,idx-2),idx).map((s,i)=>(
-          <span key={i} style={{ fontSize:32, opacity: i===1?0.7:0.3 }}>{s}</span>
-        ))}
-      </div>
-
-      {/* FIGURA ACTUAL */}
-      <div className={feedback==="correct"?"feedback-correct":feedback==="error"?"feedback-error":""} style={{ width:180, height:180, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:22, margin:"0 auto 16px", border:"2px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", transition:"all .15s", fontSize:90 }}>
-        {seq[idx] || ""}
-      </div>
-
-      <Btn onClick={handleMatch} disabled={idx<N} isChild={isChild} size="xl" className="btn-primary-adult"
-        style={{ width:"100%", maxWidth:360, margin:"0 auto", display:"block" }}>
-        ¡COINCIDE con hace {N}!
-      </Btn>
-      <p style={{ textAlign:"center", color:"rgba(255,255,255,0.25)", fontSize:12, marginTop:8 }}>
-        Solo presiona si el símbolo es igual al de hace {N} turnos
-      </p>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// HISTORIAL
-// ═══════════════════════════════════════════════
-function HistoryScreen({ history, onClear, isChild, onBack }) {
-  const handlePrint = () => window.print();
-  const fg = isChild?"#6d28d9":"#f59e0b";
-  return (
-    <div className={`screen ${isChild?"child-bg":""}`} style={{ minHeight:"100vh" }}>
-      <div className={`header-bar ${isChild?"header-child":"header-adult"} no-print`}>
-        <Btn onClick={onBack} variant="ghost" size="sm" isChild={isChild}>← Volver</Btn>
-        <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:18, color:fg }}>Historial</span>
-        <div style={{ display:"flex", gap:6 }}>
-          <Btn onClick={handlePrint} variant="secondary" size="sm" isChild={isChild}>🖨️</Btn>
-          <Btn onClick={onClear} variant="danger" size="sm" isChild={isChild}>🗑️</Btn>
-        </div>
-      </div>
-
-      {/* PRINT HEADER */}
-      <div className="print-only print-header">
-        <span style={{ fontSize:36 }}>🧠</span>
-        <div>
-          <h1 style={{ fontSize:22, fontWeight:900 }}>Yóllotl — Reporte de Evaluación Cognitiva</h1>
-          <p style={{ fontSize:12 }}>Fecha: {new Date().toLocaleString("es-MX")}</p>
-        </div>
-      </div>
-
-      <div style={{ padding:"16px 18px" }}>
-        {history.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"60px 20px", opacity:.4 }}>
-            <div style={{ fontSize:48, marginBottom:10 }}>📋</div>
-            <p style={{ color:isChild?"#7c3aed":"rgba(255,255,255,0.5)" }}>Aún no hay sesiones guardadas.</p>
-          </div>
-        ) : (
-          <div style={{ overflowX:"auto" }}>
-            <table className={`hist-table ${isChild?"hist-table-child":""}`}>
-              <thead>
-                <tr>
-                  <th style={{ color:fg }}>Fecha</th>
-                  <th style={{ color:fg }}>Paciente</th>
-                  <th style={{ color:fg }}>Prueba</th>
-                  <th style={{ color:fg }}>Puntos</th>
-                  <th style={{ color:fg }}>Precisión</th>
-                  <th style={{ color:fg }}>TR (ms)</th>
-                  <th style={{ color:fg }}>Dif.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map(s=>(
-                  <tr key={s.id}>
-                    <td style={{ fontSize:11, color:isChild?"#4c1d95":"rgba(255,255,255,0.5)", whiteSpace:"nowrap" }}>{s.date}</td>
-                    <td style={{ fontWeight:600, color:isChild?"#4c1d95":"rgba(255,255,255,0.8)" }}>{s.patientName||"—"}</td>
-                    <td style={{ color:isChild?"#4c1d95":"rgba(255,255,255,0.7)" }}>{s.gameName}</td>
-                    <td style={{ textAlign:"right", fontWeight:700, color:fg }}>{s.score}</td>
-                    <td style={{ textAlign:"right", fontWeight:700, color:s.accuracy>70?"#22c55e":s.accuracy>50?"#f59e0b":"#ef4444" }}>{s.accuracy}%</td>
-                    <td style={{ textAlign:"right", color:"#60a5fa" }}>{s.avgRT>0?s.avgRT:"—"}</td>
-                    <td style={{ textAlign:"right", color:isChild?"#7c3aed":"rgba(255,255,255,0.5)" }}>{s.maxDifficulty}/5</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <p style={{ padding:"0 18px 80px", fontSize:11, color:isChild?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.18)", lineHeight:1.6, textAlign:"center" }}>{DISCLAIMER}</p>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// CONFIGURACIÓN / ACCESIBILIDAD
-// ═══════════════════════════════════════════════
-function SettingsScreen({ settings, onUpdate, isChild, onBack }) {
-  const fg = isChild?"#6d28d9":"#f59e0b";
-  const Row = ({ label, keyName, opts }) => (
-    <div style={{ marginBottom:20 }}>
-      <p style={{ fontSize:13, fontWeight:700, color:isChild?"#7c3aed":"rgba(255,255,255,0.45)", textTransform:"uppercase", letterSpacing:".06em", marginBottom:8 }}>{label}</p>
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-        {opts.map(([val,lbl])=>(
-          <button key={val} onClick={()=>onUpdate(keyName,val)}
-            className={`pill ${settings[keyName]===val?(isChild?"pill-active-child":"pill-active-adult"):(isChild?"pill-inactive-child":"pill-inactive-adult")}`}>
-            {lbl}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className={`screen ${isChild?"child-bg":""}`} style={{ minHeight:"100vh" }}>
-      <div className={`header-bar ${isChild?"header-child":"header-adult"}`}>
-        <Btn onClick={onBack} variant="ghost" size="sm" isChild={isChild}>← Volver</Btn>
-        <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:18, color:fg }}>⚙️ Configuración</span>
-        <div style={{width:60}}/>
-      </div>
-      <div style={{ padding:"20px 18px" }}>
-        <Row label="Escala de interfaz" keyName="scale" opts={[["0.85","Pequeño"],["1","Normal"],["1.15","Grande"],["1.3","Muy Grande"]]} />
-        <Row label="Velocidad de juegos" keyName="speed" opts={[["slow","Lenta"],["normal","Normal"],["fast","Rápida"]]} />
-        <Row label="Duración de sesión" keyName="duration" opts={[["short","Corta (tamizaje)"],["full","Completa"]]} />
-
-        <div style={{ marginTop:10, padding:"14px 16px", borderRadius:16, background:isChild?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.04)", border:isChild?"2px solid rgba(139,92,246,0.2)":"1px solid rgba(255,255,255,0.08)" }}>
-          <p style={{ fontSize:13, fontWeight:700, color:isChild?"#7c3aed":"rgba(255,255,255,0.5)", marginBottom:6 }}>♿ Soporte de Accesibilidad</p>
-          <p style={{ fontSize:12, color:isChild?"#4c1d95":"rgba(255,255,255,0.4)", lineHeight:1.6 }}>
-            Esta plataforma incluye etiquetas ARIA en todos los elementos interactivos, soporte para lectores de pantalla (TalkBack, VoiceOver) y controles táctiles optimizados para dispositivos móviles.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// INSTRUCCIONES POR JUEGO
-// ═══════════════════════════════════════════════
-const GAME_INSTRUCTIONS = {
-  starcatch:  "Una estrella cae desde arriba. Mueve el ratón (o desliza el dedo en móvil) para mover la barra y ¡atrapar la estrella! Tienes 3 vidas. Si se te escapa 3 veces, el juego termina.",
-  simon:      "Se iluminarán colores en secuencia. Cuando termine, repite la misma secuencia tocando los colores en el mismo orden. ¡Cada ronda agrega un color más!",
-  countlearn: "Verás varios emojis en pantalla. Cuéntalos y toca el número correcto. ¡Fácil al principio, pero se pone más difícil!",
-  findanimal: "Hay un emoji diferente escondido entre muchos iguales. En la parte de arriba te mostramos cuál buscar. ¡Tócalo lo más rápido que puedas!",
-  puzzle:     "Verás emojis en desorden. Tócalos uno por uno en el orden correcto (por ejemplo: de pequeño a grande, de primero a último).",
-  stroop:     "Verás una palabra de un color. IGNORA lo que dice la palabra. Presiona el círculo con el COLOR DE LA TINTA. Por ejemplo: si la palabra ROJO está pintada de azul, presiona el círculo azul.",
-  numspan:    "Aparecerán números uno por uno. Cuando terminen, escríbelos todos en el mismo orden. ¡Empieza con 2 números y va aumentando!",
-  numseq:     "Hay una secuencia de números con un patrón lógico. Encuentra el patrón y elige qué número falta al final.",
-  tachy:      "Una figura aparecerá muy brevemente en pantalla. Luego verás 3 opciones. Elige cuál fue la figura que viste. ¡Pon atención!",
-  nback:      "Verás figuras una por una. Presiona el botón SOLO cuando la figura actual sea IGUAL a la de 2 turnos atrás. Si hace 2 turnos fue ◆ y ahora vuelve ◆, ¡presiona!",
-};
-
-// ═══════════════════════════════════════════════
-// APP PRINCIPAL
-// ═══════════════════════════════════════════════
-const GAME_COMPONENTS = { starcatch:StarCatchGame, simon:SimonGame, countlearn:CountLearnGame, findanimal:FindAnimalGame, puzzle:PuzzleGame, stroop:StroopGame, numspan:NumSpanGame, numseq:NumSeqGame, tachy:TachyGame, nback:NBackGame };
-const ALL_GAMES = [...CHILD_GAMES, ...ADULT_GAMES];
-
-function App() {
-  const [mode, setMode] = useState(null);
-  const [screen, setScreen] = useState("modeSelect");
-  const [currentGame, setCurrentGame] = useState(null);
-  const [results, setResults] = useState(null);
-  const [patientName, setPatientName] = useState("");
-  const [settings, setSettings] = useState({ scale:"1", speed:"normal", duration:"full" });
-
-  const engine = useGameEngine();
-  const { history, save, clear } = useHistory();
-
-  const isChild = mode === "child";
-
-  const updateSetting = useCallback((k,v) => setSettings(s=>({...s,[k]:v})), []);
-
-  const handleSelectGame = useCallback((id) => {
-    engine.reset();
-    setCurrentGame(id);
-    setScreen("intro");
-  }, [engine]);
-
-  const handleGameComplete = useCallback((res) => {
-    const info = ALL_GAMES.find(g=>g.id===currentGame);
-    setResults({ ...res, gameId:currentGame, gameName:info?.name||currentGame, encouragement:engine.encourage() });
-    setScreen("results");
-  }, [currentGame, engine]);
-
-  const handleSave = useCallback(() => {
-    if (results) {
-      save({ ...results, patientName, mode });
-      setScreen("home");
-    }
-  }, [results, patientName, mode, save]);
-
-  const gameInfo = currentGame ? { ...ALL_GAMES.find(g=>g.id===currentGame), instructions: GAME_INSTRUCTIONS[currentGame] } : null;
-  const ActiveGame = currentGame ? GAME_COMPONENTS[currentGame] : null;
-
-  // Wrapper que agrega header durante juego activo
-  const GameWrapper = () => (
-    <div className={isChild?"child-bg":""} style={{ minHeight:"100vh" }}>
-      <div className={`header-bar ${isChild?"header-child":"header-adult"} no-print`}>
-        <Btn onClick={()=>setScreen("home")} variant="ghost" size="sm" isChild={isChild}>← Menú</Btn>
-        <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:17, color:isChild?"#6d28d9":"#f59e0b" }}>
-          {gameInfo?.icon} {gameInfo?.name}
-        </span>
-        <span style={{ fontSize:12, padding:"3px 10px", borderRadius:99, background:isChild?"rgba(139,92,246,0.15)":"rgba(217,119,6,0.15)", color:isChild?"#7c3aed":"#f59e0b" }}>
-          Niv {engine.difficulty}
-        </span>
-      </div>
-      <div className="screen">
-        {ActiveGame && <ActiveGame isChild={isChild} engine={engine} onComplete={handleGameComplete} key={currentGame} />}
-      </div>
-      <div className={`footer-bar ${isChild?"footer-child":"footer-adult"} no-print`}>{DISCLAIMER}</div>
-    </div>
-  );
-
-  const scaleStyle = { transform:`scale(${settings.scale})`, transformOrigin:"top center", minHeight:"100vh" };
-
-  return (
-    <div style={scaleStyle}>
-      {screen === "modeSelect" && <ModeSelectScreen onSelect={(m)=>{ setMode(m); setScreen("home"); }} />}
-
-      {screen === "home" && mode && (
-        <HomeScreen isChild={isChild} onSelectGame={handleSelectGame}
-          onHistory={()=>setScreen("history")} onSettings={()=>setScreen("settings")}
-          onChangeMode={()=>{ setMode(null); setScreen("modeSelect"); }}
-          patientName={patientName} setPatientName={setPatientName} />
-      )}
-
-      {screen === "intro" && gameInfo && (
-        <GameIntro gameInfo={gameInfo} isChild={isChild}
-          patientName={patientName} setPatientName={setPatientName}
-          onStart={()=>setScreen("game")}
-          onBack={()=>setScreen("home")} />
-      )}
-
-      {screen === "game" && <GameWrapper />}
-
-      {screen === "results" && results && (
-        <div className={isChild?"child-bg":""} style={{ minHeight:"100vh" }}>
-          <div className={`header-bar ${isChild?"header-child":"header-adult"} no-print`}>
-            <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:18, color:isChild?"#6d28d9":"#f59e0b" }}>Resultados</span>
-          </div>
-          <ResultsScreen results={results} isChild={isChild} onSave={handleSave} onBack={()=>setScreen("home")} />
-          <div className={`footer-bar ${isChild?"footer-child":"footer-adult"} no-print`}>{DISCLAIMER}</div>
-        </div>
-      )}
-
-      {screen === "history" && (
-        <HistoryScreen history={history} onClear={clear} isChild={isChild} onBack={()=>setScreen("home")} />
-      )}
-
-      {screen === "settings" && (
-        <SettingsScreen settings={settings} onUpdate={updateSetting} isChild={isChild} onBack={()=>setScreen("home")} />
-      )}
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-</script>
 </body>
 </html>
