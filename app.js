@@ -1,35 +1,129 @@
 // ═══════════════════════════════════════════════
-// APP PRINCIPAL
+// APP PRINCIPAL — Yóllotl
+// CORRECCIONES:
+//  1. zoom en lugar de transform:scale (evita recorte de contenido)
+//  2. sessionTotal calculado desde settings.duration → pasa a cada juego
+//  3. useGameEngine y useHistory definidos aquí
 // ═══════════════════════════════════════════════
+
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+// ──────────────────────────────────────────────
+// HOOK: Motor del juego con dificultad adaptativa
+// ──────────────────────────────────────────────
+function useGameEngine() {
+  const [difficulty, setDifficulty] = useState(1);
+  const streak    = useRef(0);
+  const errStreak = useRef(0);
+
+  const recordResult = useCallback((correct) => {
+    if (correct) {
+      streak.current++;
+      errStreak.current = 0;
+      if (streak.current >= 3) {
+        setDifficulty(d => Math.min(d + 1, 5));
+        streak.current = 0;
+      }
+    } else {
+      errStreak.current++;
+      streak.current = 0;
+      if (errStreak.current >= 2) {
+        setDifficulty(d => Math.max(d - 1, 1));
+        errStreak.current = 0;
+      }
+    }
+  }, []);
+
+  const reset    = useCallback(() => {
+    setDifficulty(1);
+    streak.current    = 0;
+    errStreak.current = 0;
+  }, []);
+
+  // Velocidad en ms según dificultad (usado por N-Back)
+  const getSpeed = useCallback((d) =>
+    [2000, 1500, 1100, 800, 550][(d ?? difficulty) - 1] ?? 1100
+  , [difficulty]);
+
+  const encourage = useCallback(() => pick(ENCOURAGEMENTS), []);
+
+  return { difficulty, recordResult, reset, getSpeed, encourage };
+}
+
+// ──────────────────────────────────────────────
+// HOOK: Historial en localStorage
+// ──────────────────────────────────────────────
+function useHistory() {
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("yollotl_v3") || "[]"); }
+    catch { return []; }
+  });
+
+  const save = useCallback((session) => {
+    setHistory(prev => {
+      const updated = [
+        { ...session, id: Date.now(), date: new Date().toLocaleString("es-MX") },
+        ...prev
+      ].slice(0, 200);
+      localStorage.setItem("yollotl_v3", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const clear = useCallback(() => {
+    localStorage.removeItem("yollotl_v3");
+    setHistory([]);
+  }, []);
+
+  return { history, save, clear };
+}
+
+// ──────────────────────────────────────────────
+// MAPA DE COMPONENTES
+// ──────────────────────────────────────────────
 const GAME_COMPONENTS = {
-  starcatch: StarCatchGame,
-  simon: SimonGame,
+  starcatch:  StarCatchGame,
+  simon:      SimonGame,
   countlearn: CountLearnGame,
   findanimal: FindAnimalGame,
-  puzzle: PuzzleGame,
-  stroop: StroopGame,
-  numspan: NumSpanGame,
-  numseq: NumSeqGame,
-  tachy: TachyGame,
-  nback: NBackGame,
+  puzzle:     PuzzleGame,
+  stroop:     StroopGame,
+  numspan:    NumSpanGame,
+  numseq:     NumSeqGame,
+  tachy:      TachyGame,
+  nback:      NBackGame,
 };
 
 const ALL_GAMES = [...CHILD_GAMES, ...ADULT_GAMES];
 
+// ──────────────────────────────────────────────
+// APP
+// ──────────────────────────────────────────────
 function App() {
-  const [mode, setMode] = useState(null);
-  const [screen, setScreen] = useState("modeSelect");
+  const [mode,        setMode]        = useState(null);      // "child" | "adult"
+  const [screen,      setScreen]      = useState("modeSelect");
   const [currentGame, setCurrentGame] = useState(null);
-  const [results, setResults] = useState(null);
+  const [results,     setResults]     = useState(null);
   const [patientName, setPatientName] = useState("");
-  const [settings, setSettings] = useState({ scale:"1", speed:"normal", duration:"full" });
+  const [settings,    setSettings]    = useState({
+    scale:    "1",
+    speed:    "normal",
+    duration: "medium",   // short | medium | long
+  });
 
-  const engine = useGameEngine();
+  const engine              = useGameEngine();
   const { history, save, clear } = useHistory();
+  const isChild             = mode === "child";
 
-  const isChild = mode === "child";
+  // ── Cuántos intentos según duración configurada ──
+  // CORRECCIÓN: derivado de settings.duration usando DURATION_TOTALS
+  const sessionTotal = useMemo(() =>
+    DURATION_TOTALS[settings.duration] ?? 10
+  , [settings.duration]);
 
-  const updateSetting = useCallback((key, value) => setSettings(prev => ({ ...prev, [key]: value })), []);
+  const updateSetting = useCallback((key, value) =>
+    setSettings(prev => ({ ...prev, [key]: value }))
+  , []);
 
   const handleSelectGame = useCallback((id) => {
     engine.reset();
@@ -39,7 +133,12 @@ function App() {
 
   const handleGameComplete = useCallback((res) => {
     const info = ALL_GAMES.find(g => g.id === currentGame);
-    setResults({ ...res, gameId: currentGame, gameName: info?.name || currentGame, encouragement: engine.encourage() });
+    setResults({
+      ...res,
+      gameId:      currentGame,
+      gameName:    info?.name || currentGame,
+      encouragement: engine.encourage(),
+    });
     setScreen("results");
   }, [currentGame, engine]);
 
@@ -50,68 +149,126 @@ function App() {
     }
   }, [results, patientName, mode, save]);
 
-  const gameInfo = currentGame ? { ...ALL_GAMES.find(g => g.id === currentGame), instructions: GAME_INSTRUCTIONS[currentGame] } : null;
+  const gameInfo   = currentGame
+    ? { ...ALL_GAMES.find(g => g.id === currentGame), instructions: GAME_INSTRUCTIONS[currentGame] }
+    : null;
   const ActiveGame = currentGame ? GAME_COMPONENTS[currentGame] : null;
 
-  const GameWrapper = () => (
-    <div className={isChild ? "child-bg" : ""} style={{ minHeight:"100vh" }}>
-      <div className={`header-bar ${isChild ? "header-child" : "header-adult"} no-print`}>
-        <Btn onClick={() => setScreen("home")} variant="ghost" size="sm" isChild={isChild}>← Menú</Btn>
-        <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:17, color:isChild?"#6d28d9":"#f59e0b" }}>
-          {gameInfo?.icon} {gameInfo?.name}
-        </span>
-        <span style={{ fontSize:12, padding:"3px 10px", borderRadius:99, background:isChild?"rgba(139,92,246,0.15)":"rgba(217,119,6,0.15)", color:isChild?"#7c3aed":"#f59e0b" }}>
-          Niv {engine.difficulty}
-        </span>
-      </div>
-      <div className="screen">
-        {ActiveGame && <ActiveGame isChild={isChild} engine={engine} onComplete={handleGameComplete} key={currentGame} />}
-      </div>
-      <div className={`footer-bar ${isChild?"footer-child":"footer-adult"} no-print`}>{DISCLAIMER}</div>
-    </div>
-  );
+  // ── CORRECCIÓN: zoom en lugar de transform:scale ──
+  // zoom redimensiona el layout completo sin recortar ni requerir scroll horizontal
+  const appStyle = {
+    zoom:          settings.scale,   // soportado en todos los browsers modernos
+    minHeight:     "100vh",
+  };
 
-  const scaleStyle = { transform:`scale(${settings.scale})`, transformOrigin:"top center", minHeight:"100vh" };
+  // ── Wrapper del juego activo ──
+  const GameWrapper = useCallback(() => {
+    if (!ActiveGame || !gameInfo) return null;
+    return (
+      <div className={isChild ? "child-bg" : ""} style={{ minHeight:"100vh" }}>
+        <div className={`header-bar ${isChild ? "header-child" : "header-adult"} no-print`}>
+          <Btn onClick={() => setScreen("home")} variant="ghost" size="sm" isChild={isChild}>← Menú</Btn>
+          <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:17, color:isChild?"#6d28d9":"#f59e0b" }}>
+            {gameInfo.icon} {gameInfo.name}
+          </span>
+          <span style={{ fontSize:12, padding:"3px 10px", borderRadius:99, background:isChild?"rgba(139,92,246,0.15)":"rgba(217,119,6,0.15)", color:isChild?"#7c3aed":"#f59e0b" }}>
+            Niv {engine.difficulty}
+          </span>
+        </div>
+
+        <div className="screen">
+          {/* CORRECCIÓN: sessionTotal pasado a cada juego */}
+          <ActiveGame
+            key={currentGame}
+            isChild={isChild}
+            engine={engine}
+            onComplete={handleGameComplete}
+            sessionTotal={sessionTotal}
+          />
+        </div>
+
+        <div className={`footer-bar ${isChild?"footer-child":"footer-adult"} no-print`}>{DISCLAIMER}</div>
+      </div>
+    );
+  }, [ActiveGame, gameInfo, isChild, engine, currentGame, handleGameComplete, sessionTotal]);
 
   return (
-    <div style={scaleStyle}>
-      {screen === "modeSelect" && <ModeSelectScreen onSelect={(m)=>{ setMode(m); setScreen("home"); }} />}
+    <div style={appStyle}>
 
+      {/* ── SELECCIÓN DE MODO ── */}
+      {screen === "modeSelect" && (
+        <ModeSelectScreen onSelect={(m) => { setMode(m); setScreen("home"); }}/>
+      )}
+
+      {/* ── HOME ── */}
       {screen === "home" && mode && (
-        <HomeScreen isChild={isChild} onSelectGame={handleSelectGame}
-          onHistory={()=>setScreen("history")} onSettings={()=>setScreen("settings")}
-          onChangeMode={()=>{ setMode(null); setScreen("modeSelect"); }}
-          patientName={patientName} setPatientName={setPatientName} />
+        <HomeScreen
+          isChild={isChild}
+          onSelectGame={handleSelectGame}
+          onHistory={()     => setScreen("history")}
+          onSettings={()    => setScreen("settings")}
+          onChangeMode={()  => { setMode(null); setScreen("modeSelect"); }}
+          patientName={patientName}
+          setPatientName={setPatientName}
+        />
       )}
 
+      {/* ── INTRO DE JUEGO ── */}
       {screen === "intro" && gameInfo && (
-        <GameIntro gameInfo={gameInfo} isChild={isChild}
-          patientName={patientName} setPatientName={setPatientName}
-          onStart={()=>setScreen("game")}
-          onBack={()=>setScreen("home")} />
+        <GameIntro
+          gameInfo={gameInfo}
+          isChild={isChild}
+          patientName={patientName}
+          setPatientName={setPatientName}
+          onStart={() => setScreen("game")}
+          onBack={()  => setScreen("home")}
+        />
       )}
 
-      {screen === "game" && <GameWrapper />}
+      {/* ── JUEGO ACTIVO ── */}
+      {screen === "game" && <GameWrapper/>}
 
+      {/* ── RESULTADOS ── */}
       {screen === "results" && results && (
-        <div className={isChild?"child-bg":""} style={{ minHeight:"100vh" }}>
+        <div className={isChild ? "child-bg" : ""} style={{ minHeight:"100vh" }}>
           <div className={`header-bar ${isChild?"header-child":"header-adult"} no-print`}>
-            <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:18, color:isChild?"#6d28d9":"#f59e0b" }}>Resultados</span>
+            <span style={{ fontFamily:isChild?"'Fredoka One',cursive":"'Playfair Display',serif", fontSize:18, color:isChild?"#6d28d9":"#f59e0b" }}>
+              Resultados
+            </span>
           </div>
-          <ResultsScreen results={results} isChild={isChild} onSave={handleSave} onBack={()=>setScreen("home")} />
+          <ResultsScreen
+            results={results}
+            isChild={isChild}
+            onSave={handleSave}
+            onBack={() => setScreen("home")}
+          />
           <div className={`footer-bar ${isChild?"footer-child":"footer-adult"} no-print`}>{DISCLAIMER}</div>
         </div>
       )}
 
+      {/* ── HISTORIAL ── */}
       {screen === "history" && (
-        <HistoryScreen history={history} onClear={clear} isChild={isChild} onBack={()=>setScreen("home")} />
+        <HistoryScreen
+          history={history}
+          onClear={clear}
+          isChild={isChild}
+          onBack={() => setScreen("home")}
+        />
       )}
 
+      {/* ── CONFIGURACIÓN ── */}
       {screen === "settings" && (
-        <SettingsScreen settings={settings} onUpdate={updateSetting} isChild={isChild} onBack={()=>setScreen("home")} />
+        <SettingsScreen
+          settings={settings}
+          onUpdate={updateSetting}
+          isChild={isChild}
+          onBack={() => setScreen("home")}
+        />
       )}
+
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// ── Punto de entrada ──
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
