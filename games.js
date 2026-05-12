@@ -158,12 +158,21 @@ function SimonGame({ isChild, engine, onComplete, sessionTotal }) {
   const [errors,  setErrors]  = useState(0);
   const [round,   setRound]   = useState(0);
 
+  // RT tracking: mide desde que termina la secuencia hasta que el usuario completa su turno
+  const rtRef      = useRef([]);
+  const roundStart = useRef(null);
+
   const showSeq = useCallback((s) => {
     setShowing(true);
     setUserSeq([]);
     let i = 0;
     const next = () => {
-      if (i >= s.length) { setLit(-1); setShowing(false); return; }
+      if (i >= s.length) {
+        setLit(-1);
+        setShowing(false);
+        roundStart.current = Date.now(); // ← arrancar cuando termina de mostrar
+        return;
+      }
       setLit(s[i]);
       setTimeout(() => { setLit(-1); setTimeout(() => { i++; next(); }, 250); }, 650);
     };
@@ -176,7 +185,6 @@ function SimonGame({ isChild, engine, onComplete, sessionTotal }) {
     showSeq(ns);
   }, [showSeq]);
 
-  // ← CORRECCIÓN: un solo useEffect de inicialización
   useEffect(() => { addRound([]); }, []); // eslint-disable-line
 
   const handlePress = useCallback((idx) => {
@@ -189,17 +197,24 @@ function SimonGame({ isChild, engine, onComplete, sessionTotal }) {
     if (nu[nu.length - 1] !== seq[nu.length - 1]) {
       setErrors(e => e + 1);
       engine.recordResult(false);
-      onComplete({ score, accuracy: Math.round((round / Math.max(1, round + 1)) * 100), avgRT: 0, errors: errors + 1, maxDifficulty: engine.difficulty });
+      const avgRT = avgArr(rtRef.current);
+      onComplete({ score, accuracy: Math.round((round / Math.max(1, round + 1)) * 100), avgRT, errors: errors + 1, maxDifficulty: engine.difficulty });
       return;
     }
     if (nu.length === seq.length) {
+      // ← registrar RT al completar la ronda correctamente
+      if (roundStart.current) rtRef.current.push(Date.now() - roundStart.current);
       engine.recordResult(true);
       const ns = score + seq.length * 60;
       setScore(ns);
       const nr = round + 1;
       setRound(nr);
-      if (nr >= MAXROUND) onComplete({ score: ns, accuracy: 100, avgRT: 0, errors, maxDifficulty: engine.difficulty });
-      else addRound(seq);
+      if (nr >= MAXROUND) {
+        const avgRT = avgArr(rtRef.current);
+        onComplete({ score: ns, accuracy: 100, avgRT, errors, maxDifficulty: engine.difficulty });
+      } else {
+        addRound(seq);
+      }
     }
   }, [showing, userSeq, seq, score, round, errors, engine, addRound, onComplete, MAXROUND]);
 
@@ -251,6 +266,10 @@ function CountLearnGame({ isChild, engine, onComplete, sessionTotal }) {
   const [feedback, setFeedback] = useState(null);
   const [disabled, setDisabled] = useState(false);
 
+  // RT tracking
+  const rtRef    = useRef([]);
+  const startRef = useRef(null);
+
   const next = useCallback(() => {
     const e   = pick(EMOJIS);
     const max = Math.min(3 + engine.difficulty * 2, 12);
@@ -259,6 +278,7 @@ function CountLearnGame({ isChild, engine, onComplete, sessionTotal }) {
     while (opts.size < 4) opts.add(randInt(1, max + 2));
     setEmoji(e); setCount(n); setOptions(shuffle([...opts]));
     setFeedback(null); setDisabled(false);
+    startRef.current = Date.now(); // ← arrancar cronómetro al mostrar emojis
   }, [engine.difficulty]);
 
   useEffect(() => { next(); }, []); // eslint-disable-line
@@ -266,6 +286,8 @@ function CountLearnGame({ isChild, engine, onComplete, sessionTotal }) {
   const handleAnswer = useCallback((ans) => {
     if (disabled) return;
     setDisabled(true);
+    const elapsed = Date.now() - startRef.current;
+    rtRef.current.push(elapsed); // ← registrar tiempo de respuesta
     const correct = ans === count;
     engine.recordResult(correct);
     setFeedback(correct ? "correct" : "error");
@@ -274,7 +296,8 @@ function CountLearnGame({ isChild, engine, onComplete, sessionTotal }) {
     if (correct) setScore(ns); else setErrors(ne);
     const nt = trial + 1; setTrial(nt);
     if (nt >= TOTAL) {
-      setTimeout(() => onComplete({ score: ns, accuracy: Math.round(((nt - ne) / nt) * 100), avgRT: 0, errors: ne, maxDifficulty: engine.difficulty }), 800);
+      const avgRT = avgArr(rtRef.current);
+      setTimeout(() => onComplete({ score: ns, accuracy: Math.round(((nt - ne) / nt) * 100), avgRT, errors: ne, maxDifficulty: engine.difficulty }), 800);
     } else {
       setTimeout(next, 900);
     }
@@ -409,10 +432,15 @@ function PuzzleGame({ isChild, engine, onComplete, sessionTotal }) {
   const [errors,   setErrors]   = useState(0);
   const [feedback, setFeedback] = useState(null);
 
+  // RT tracking: tiempo desde que aparecen las opciones hasta que el paciente ordena la última
+  const rtRef    = useRef([]);
+  const startRef = useRef(null);
+
   const setup = useCallback((idx) => {
     const t = USE_SEQS[idx % USE_SEQS.length];
     setShuffled(shuffle(t.items));
     setUserOrder([]); setFeedback(null);
+    startRef.current = Date.now(); // ← arrancar al mostrar opciones
   }, [USE_SEQS]);
 
   useEffect(() => { setup(0); }, []); // eslint-disable-line
@@ -424,6 +452,8 @@ function PuzzleGame({ isChild, engine, onComplete, sessionTotal }) {
     setShuffled(s => s.filter(x => x !== item));
 
     if (nu.length === USE_SEQS[trialIdx % USE_SEQS.length].items.length) {
+      const elapsed = Date.now() - startRef.current;
+      rtRef.current.push(elapsed); // ← registrar tiempo al completar puzzle
       const correct = nu.join("") === USE_SEQS[trialIdx % USE_SEQS.length].answer.join("");
       engine.recordResult(correct);
       setFeedback(correct ? "correct" : "error");
@@ -432,7 +462,8 @@ function PuzzleGame({ isChild, engine, onComplete, sessionTotal }) {
       if (correct) setScore(ns); else setErrors(ne);
       const nt = trialIdx + 1;
       if (nt >= USE_SEQS.length) {
-        setTimeout(() => onComplete({ score: ns, accuracy: Math.round(((nt - ne) / nt) * 100), avgRT: 0, errors: ne, maxDifficulty: engine.difficulty }), 900);
+        const avgRT = avgArr(rtRef.current);
+        setTimeout(() => onComplete({ score: ns, accuracy: Math.round(((nt - ne) / nt) * 100), avgRT, errors: ne, maxDifficulty: engine.difficulty }), 900);
       } else {
         setTimeout(() => { setTrialIdx(nt); setup(nt); }, 1000);
       }
