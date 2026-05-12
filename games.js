@@ -22,24 +22,26 @@ function StarCatchGame({ isChild, engine, onComplete, sessionTotal }) {
   const [total,   setTotal]   = useState(0);
   const [feedback,setFeedback]= useState(null);
 
-  const arenaRef  = useRef(null);
-  const rafRef    = useRef(null);
-  const animateRef= useRef(null);   // ← CORRECCIÓN: ref para función animate
-  const starRef   = useRef({ x: 50, y: -5, speed: 0.7 });
+  const arenaRef   = useRef(null);
+  const rafRef     = useRef(null);
+  const animateRef = useRef(null);
+  const starRef    = useRef({ x: 50, y: -5, speed: 0.7 });
 
-  // Estado mutable sin re-render (para el loop de animación)
+  // Estado mutable sin re-render
   const S = useRef({ barX: 50, active: true, lives: 3, score: 0, caught: 0, total: 0 });
 
-  // Sync barX state → ref
+  // RT tracking: tiempo desde que aparece la estrella hasta que cae
+  const rtRef      = useRef([]);
+  const starLaunch = useRef(null); // ← momento en que se lanzó la estrella
+
   useEffect(() => { S.current.barX = barX; }, [barX]);
 
   const launchStar = useCallback(() => {
-    starRef.current = { x: randInt(10, 90), y: -5, speed: 0.55 + engine.difficulty * 0.22 };
+    starRef.current  = { x: randInt(10, 90), y: -5, speed: 0.55 + engine.difficulty * 0.22 };
+    starLaunch.current = Date.now(); // ← arrancar cronómetro al lanzar
     setStarPos({ x: starRef.current.x, y: -5 });
   }, [engine.difficulty]);
 
-  // ← CORRECCIÓN: animateRef.current siempre apunta a la versión más fresca
-  //   evita que el RAF quede atrapado con closures viejas
   animateRef.current = () => {
     if (!S.current.active) return;
 
@@ -47,10 +49,12 @@ function StarCatchGame({ isChild, engine, onComplete, sessionTotal }) {
     setStarPos({ x: starRef.current.x, y: starRef.current.y });
 
     if (starRef.current.y >= 90) {
+      const elapsed = Date.now() - starLaunch.current; // ← tiempo de reacción
       const dx  = Math.abs(starRef.current.x - S.current.barX);
       const hit = dx < 12;
 
       if (hit) {
+        rtRef.current.push(elapsed); // ← solo registrar cuando atrapa
         S.current.score  += 100 + engine.difficulty * 20;
         S.current.caught += 1;
         setScore(S.current.score);
@@ -70,11 +74,12 @@ function StarCatchGame({ isChild, engine, onComplete, sessionTotal }) {
 
       if (S.current.lives <= 0 || S.current.total >= TOTAL) {
         S.current.active = false;
-        const acc = Math.round((S.current.caught / S.current.total) * 100);
+        const acc   = Math.round((S.current.caught / S.current.total) * 100);
+        const avgRT = avgArr(rtRef.current); // ← promedio de tiempos de atrape
         setTimeout(() => onComplete({
           score: S.current.score,
           accuracy: acc,
-          avgRT: 0,
+          avgRT,
           errors: S.current.total - S.current.caught,
           maxDifficulty: engine.difficulty
         }), 500);
